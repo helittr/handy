@@ -1,0 +1,34 @@
+[
+{
+    "name": "ExampleGroup",
+    "type": "scriptgroup",
+    "label": "Example Script Group",
+    "description": "This is an example script group.",
+    "children": [
+        {
+            "name": "example",
+            "type": "winpowershell",
+            "path": "./example.ps1",
+            "label": "Example Script",
+            "description": "This is an example script.",
+            "parameters": [
+                {
+                    "name": "param1",
+                    "type": "input",
+                    "default": "",
+                    "label": "Parameter 1",
+                    "description": "An input parameter."
+                },
+                {
+                    "name": "param2",
+                    "type": "select",
+                    "default": "",
+                    "label": "Parameter 2",
+                    "description": "A select parameter.",
+                    "options": ["option1", "option2"]
+                }
+            ]
+        }
+    ]
+}
+]
