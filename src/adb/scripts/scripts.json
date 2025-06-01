@@ -1,34 +1,92 @@
 [
-{
-    "name": "ExampleGroup",
-    "type": "scriptgroup",
-    "label": "Example Script Group",
-    "description": "This is an example script group.",
-    "children": [
-        {
-            "name": "example",
-            "type": "winpowershell",
-            "path": "./example.ps1",
-            "label": "Example Script",
-            "description": "This is an example script.",
-            "parameters": [
-                {
-                    "name": "param1",
-                    "type": "input",
-                    "default": "",
-                    "label": "Parameter 1",
-                    "description": "An input parameter."
-                },
-                {
-                    "name": "param2",
-                    "type": "select",
-                    "default": "",
-                    "label": "Parameter 2",
-                    "description": "A select parameter.",
-                    "options": ["option1", "option2"]
-                }
-            ]
-        }
-    ]
-}
+    {
+        "name": "示例组",
+        "type": "scriptgroup",
+        "label": "示例脚本组",
+        "description": "This is an example script group.",
+        "children": [
+            {
+                "name": "示例脚本",
+                "type": "winpowershell",
+                "path": "./example.ps1",
+                "label": "示例脚本",
+                "description": "This is an example script.",
+                "parameters": [
+                    {
+                        "name": "参数1",
+                        "type": "input",
+                        "default": "defualtvalue",
+                        "label": "参数1",
+                        "description": "An input parameter."
+                    },
+                    {
+                        "name": "参数2",
+                        "type": "select",
+                        "default": "",
+                        "label": "参数2",
+                        "description": "A select parameter.",
+                        "options": [
+                            {
+                                "label": "选项1",
+                                "value": "value1"
+                            },
+                            {
+                                "label": "选项2",
+                                "value": "value2"
+                            },
+                            {
+                                "label": "选项3",
+                                "value": "value3"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "示例分组2",
+        "type": "scriptgroup",
+        "label": "示例脚本组",
+        "description": "This is an example script group.",
+        "children": [
+            {
+                "name": "示例1",
+                "type": "winpowershell",
+                "path": "./example.ps1",
+                "label": "示例脚本",
+                "description": "This is an example script.",
+                "parameters": [
+                    {
+                        "name": "参数1",
+                        "type": "input",
+                        "default": "defualtvalue",
+                        "label": "参数1",
+                        "description": "An input parameter."
+                    },
+                    {
+                        "name": "参数2",
+                        "type": "select",
+                        "default": "",
+                        "label": "参数2",
+                        "description": "A select parameter.",
+                        "options": [
+                            {
+                                "label": "选项1",
+                                "value": "value1"
+                            },
+                            {
+                                "label": "选项2",
+                                "value": "value2"
+                            },
+                            {
+                                "label": "选项3",
+                                "value": "value3"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
 ]

@@ -4,3 +4,5 @@ write-host "This is an example script for PowerShell."
 write-host "Parameters: $args"
 # 输出当前日期和时间    
 write-host "Current Date and Time: $(Get-Date)"
+
+Start-Sleep 10s
