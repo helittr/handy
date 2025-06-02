@@ -12,3 +12,6 @@ dependencies = [
 dev = [
     "fastapi[standard]>=0.115.12",
 ]
+
+[tool.autopep8]
+max-line-length = 80
