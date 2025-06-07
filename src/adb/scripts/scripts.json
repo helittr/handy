@@ -1,29 +1,29 @@
 [
     {
-        "name": "示例组",
+        "name": "example",
         "type": "scriptgroup",
-        "label": "示例脚本组",
+        "label": "参数示例",
         "description": "This is an example script group.",
         "children": [
             {
-                "name": "示例脚本",
+                "name": "script",
                 "type": "winpowershell",
                 "path": "./example.ps1",
-                "label": "示例脚本",
+                "label": "各种参数",
                 "description": "This is an example script.",
                 "parameters": [
                     {
-                        "name": "参数1",
+                        "name": "input",
                         "type": "input",
-                        "default": "defualtvalue",
-                        "label": "参数1",
+                        "default": "defaultvalue",
+                        "label": "输入参数",
                         "description": "An input parameter."
                     },
                     {
-                        "name": "参数2",
+                        "name": "--select",
                         "type": "select",
-                        "default": "",
-                        "label": "参数2",
+                        "default": "value1",
+                        "label": "选择参数",
                         "description": "A select parameter.",
                         "options": [
                             {
@@ -39,6 +39,57 @@
                                 "value": "value3"
                             }
                         ]
+                    },
+                    {
+                        "name": "--switch",
+                        "type": "switch",
+                        "default": false,
+                        "label": "开关参数",
+                        "description": "A switch parameter."
+                    }
+                ]
+            },
+                        {
+                "name": "script",
+                "type": "winpowershell",
+                "path": "./example.ps1",
+                "label": "参数无默认值",
+                "description": "This is an example script.",
+                "parameters": [
+                    {
+                        "name": "input",
+                        "type": "input",
+                        "default": "defaultvalue",
+                        "label": "输入参数",
+                        "description": "An input parameter."
+                    },
+                    {
+                        "name": "--select",
+                        "type": "select",
+                        "default": "",
+                        "label": "选择参数",
+                        "description": "A select parameter.",
+                        "options": [
+                            {
+                                "label": "选项1",
+                                "value": "value1"
+                            },
+                            {
+                                "label": "选项2",
+                                "value": "value2"
+                            },
+                            {
+                                "label": "选项3",
+                                "value": "value3"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "--switch",
+                        "type": "switch",
+                        "default": false,
+                        "label": "开关参数",
+                        "description": "A switch parameter."
                     }
                 ]
             }

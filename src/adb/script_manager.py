@@ -42,8 +42,6 @@ class InputParameter(BaseModel):
         """Checks if the provided value is valid for this parameter."""
         if not isinstance(value, str):
             return False
-        if not value:
-            return False
         # Additional validation logic can be added here
         return True
 
@@ -58,7 +56,7 @@ class SelectOption(BaseModel):
 
     label: str
     value: str
-
+    
 
 class SelectParameter(BaseModel):
     """Represents a selection parameter with multiple options.
@@ -77,12 +75,25 @@ class SelectParameter(BaseModel):
     default: str
     label: str
     description: str
+    required: bool = True
     options: t.List[SelectOption] = Field(default_factory=list)
 
     def check_value(self, option: str) -> bool:
         """Checks if the provided option is valid for this parameter."""
         return option in [opt.value for opt in self.options]
 
+class SwitchParameter(BaseModel):
+    """ Represents a switch parameter. """
+    type: t.Literal["switch"]
+    name: str
+    required: bool = True
+    label: str
+    description: str
+    default: bool = False
+
+    def check_value(self, value: bool) -> bool:
+        """Checks if the provided value is valid for this parameter."""
+        return isinstance(value, bool)
 
 # Define the script information
 class GlobalId:
@@ -141,7 +152,7 @@ class ScriptInfo(BaseModel):
     description: str
     parameters: t.List[
         Annotated[
-            InputParameter | SelectParameter,
+            InputParameter | SelectParameter | SwitchParameter,
             Field(default_factory=list, discriminator="type"),
         ]
     ]
@@ -185,7 +196,7 @@ class RootGroup(RootModel):
 class ExecuteParam(RootModel):
     """the parameter of script to execute"""
 
-    root: t.Dict[str, str]
+    root: t.Dict[str, str|bool]
 
 
 class ScriptStatus(Enum):
@@ -255,15 +266,17 @@ class BaseScript:
 
     def get_log(self, pos: int, max_size: int) -> bytes:
         """get command log"""
-        with self.logfile.open("rb") as f:
-            try:
-                f.flush()
-                f.seek(pos, os.SEEK_SET)
-            except ValueError as e:
-                print(f"Invalid position: {pos}, error: {e}")
-                return b""
-            return f.read(max_size)
-
+        try:
+            with self.logfile.open("rb") as f:
+                try:
+                    f.flush()
+                    f.seek(pos, os.SEEK_SET)
+                except ValueError as e:
+                    print(f"Invalid position: {pos}, error: {e}")
+                    return b""
+                return f.read(max_size)
+        except FileNotFoundError as e:
+            return b''
 
 class ScriptFactory:
     """Factory class to create script instances based on their type."""
@@ -323,7 +336,7 @@ class WinPowerShellScript(BaseScript):
             "-File",
             self.info.path,
         ] + [
-            f"-{param.name} {parameters[param.name]}"
+            f"{param.name if param.name.startswith('-') else ''} {'' if isinstance(parameters[param.name], bool) else parameters[param.name]}"
             for param in self.info.parameters
             if param.name in parameters
         ]

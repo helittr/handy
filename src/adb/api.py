@@ -36,7 +36,7 @@ def exe_command(
         return {"status": "ok", "code": 0, "execution_id": sid}
     except ValueError as e:
         print("exception", e)
-        return {"status": "error", "code": 1, "message": str(e)}
+        return Response(content=str(e), status_code=400)
 
 
 @router.get("/commands/{sid}/status", summary="获取指定命令状态")
