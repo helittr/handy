@@ -32,8 +32,8 @@ def exe_command(
     """the api to execute script"""
     print(f"excute command{sid}", params)
     try:
-        manager.execute_script(sid, params)
-        return {"status": "ok", "code": 0, "execution_id": sid}
+        tid= manager.execute_script(sid, params)
+        return {"status": "ok", "code": 0, "execution_id": tid}
     except ValueError as e:
         print("exception", e)
         return Response(content=str(e), status_code=400)
@@ -46,13 +46,20 @@ def get_status(sid: Annotated[int, Path(title="The ID of the command to get")]):
     return {"id": sid, "code": st}
 
 
-@router.get("/commands/{sid}/log", summary="获取指定命令日志")
+@router.get("/commands/tasks/{tid}/log", summary="获取任务日志")
 def get_log(
-    sid: Annotated[int, Path(title="The ID of the command to get")],
+    tid: Annotated[int, Path(title="The ID of the command to get")],
     pos: int = Query(default=0, ge=0, title="The position of the log to get"),
     size: int = Query(default=-1, title="The size of the log to get"),
 ):
     """get command log"""
-    log = manager.get_script_log(sid, pos, size)
+    log = manager.get_script_log(tid, pos, size)
     print("response log", log.decode("gb2312", errors="ignore"))
     return Response(content=log, media_type="application/octet-stream")
+
+
+@router.get("/commands/tasks", summary="获取任务列表")
+def get_tasks():
+    """get task list"""
+
+    return  [{"taskid": task.taskid, "status": task.get_status(), "cmdid": task.info.id} for task in manager.task.values()] 

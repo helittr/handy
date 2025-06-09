@@ -212,11 +212,15 @@ class BaseScript:
     """Base class for scripts, can be extended for specific script types."""
 
     def __init__(self, script_info: ScriptInfo, logfile: str):
+        self.taskid: IdType = time.time_ns()
         self.info: ScriptInfo = script_info
         self.status: ScriptStatus = ScriptStatus.PRE
         self.logfile: Path = Path(logfile)
         self.out: t.Optional[BufferedWriter] = None
         self.process: t.Optional[subprocess.Popen] = None
+        self.createtime: float = time.time()
+        self.starttime: float|None = None
+        self.endtime: float|None = None
 
         if self.logfile.exists():
             raise FileExistsError(f"{self.logfile.absolute()} is already exist")
@@ -246,7 +250,7 @@ class BaseScript:
 
         if self.status != ScriptStatus.PRE:
             raise SyntaxError(f"script status exception,{self.status}")
-
+        self.starttime = time.time()
         self.status = ScriptStatus.RUNNING
 
         self.out = self.logfile.open(mode="wb")
@@ -260,6 +264,7 @@ class BaseScript:
                 f"Script '{self.info.name}' is finished code {self.process.returncode}"
             )
             self.status = ScriptStatus.FINISH
+            self.endtime = time.time()
             self.out.close()
 
         return self.status
@@ -275,7 +280,8 @@ class BaseScript:
                     print(f"Invalid position: {pos}, error: {e}")
                     return b""
                 return f.read(max_size)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
+            print(f"Log file not found: {self.logfile.absolute()}")
             return b''
 
 class ScriptFactory:
@@ -398,7 +404,7 @@ class ScriptManager:
                     return found_script
         return None
 
-    def execute_script(self, sid: IdType, parameters: ExecuteParam):
+    def execute_script(self, sid: IdType, parameters: ExecuteParam)-> IdType:
         """Executes a script by its ID and returns execution ID.
 
         Args:
@@ -416,12 +422,12 @@ class ScriptManager:
             task = ScriptFactory.create_script(
                 scriptinfo,
                 self.logdir.joinpath(
-                    f"{sid}-{scriptinfo.name}-{time.strftime('%Y%m%d%H%M%S')}.log"
+                    f"{sid}-{scriptinfo.name}-{time.time()}.log"
                 ),
             )
-            self.task[sid] = task
+            self.task[task.taskid] = task
             task.execute(parameters)
-
+            return task.taskid
         else:
             raise ValueError(f"Script '{sid}' not found.")
 
@@ -432,13 +438,17 @@ class ScriptManager:
             return ScriptStatus.PRE
         return task.get_status()
 
-    def get_script_log(self, sid: IdType, pos: int = 0, size: int = 0) -> bytes:
+    def get_script_log(self, tid: IdType, pos: int = 0, size: int = 0) -> bytes:
         """get script log by id"""
-        task = self.task.get(sid)
+        task = self.task.get(tid)
         if not task:
+            print("task not found")
             return b""
         return task.get_log(pos, size)
 
+    def get_task(self) -> t.Dict[IdType, t.Type[BaseScript]]:
+        """get task"""
+        return self.task
 
 if __name__ == "__main__":
     # Example usage
