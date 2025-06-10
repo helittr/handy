@@ -212,7 +212,7 @@ class BaseScript:
     """Base class for scripts, can be extended for specific script types."""
 
     def __init__(self, script_info: ScriptInfo, logfile: str):
-        self.taskid: IdType = time.time_ns()
+        self.taskid: IdType = time.time_ns() // 1000
         self.info: ScriptInfo = script_info
         self.status: ScriptStatus = ScriptStatus.PRE
         self.logfile: Path = Path(logfile)
@@ -441,9 +441,9 @@ class ScriptManager:
     def get_script_log(self, tid: IdType, pos: int = 0, size: int = 0) -> bytes:
         """get script log by id"""
         task = self.task.get(tid)
-        if not task:
-            print("task not found")
-            return b""
+        print("get log", task, self.task)
+        if task is None:
+            raise ValueError(f"Task '{tid}' not found.")
         return task.get_log(pos, size)
 
     def get_task(self) -> t.Dict[IdType, t.Type[BaseScript]]:

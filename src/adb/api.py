@@ -7,6 +7,7 @@ from typing import Annotated
 # import logging
 
 from fastapi import APIRouter, Path, Response, Query
+# from fastapi.responses import JSONResponse
 from . import script_manager as smgr
 from .script_manager import ExecuteParam
 
@@ -32,7 +33,7 @@ def exe_command(
     """the api to execute script"""
     print(f"excute command{sid}", params)
     try:
-        tid= manager.execute_script(sid, params)
+        tid = manager.execute_script(sid, params)
         return {"status": "ok", "code": 0, "execution_id": tid}
     except ValueError as e:
         print("exception", e)
@@ -53,13 +54,27 @@ def get_log(
     size: int = Query(default=-1, title="The size of the log to get"),
 ):
     """get command log"""
-    log = manager.get_script_log(tid, pos, size)
-    print("response log", log.decode("gb2312", errors="ignore"))
-    return Response(content=log, media_type="application/octet-stream")
+    try:
+        log = manager.get_script_log(tid, pos, size)
+        print("response log", log.decode("gb2312", errors="ignore"))
+        return Response(content=log, media_type="application/octet-stream")
+    except ValueError as e:
+        print("exception", e)
+        return Response(content=str(e), status_code=400)
 
 
 @router.get("/commands/tasks", summary="获取任务列表")
 def get_tasks():
     """get task list"""
-
-    return  [{"taskid": task.taskid, "status": task.get_status(), "cmdid": task.info.id} for task in manager.task.values()] 
+    task = {
+        "tasks": [
+            {
+                "taskid": task.taskid,
+                "status": task.get_status(),
+                "cmdid": task.info.id,
+            }
+            for _, task in manager.task.items()
+        ]
+    }
+    print("task", task)
+    return task
