@@ -5,7 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi[standard]>=0.115.12",
+    "fastapi",
+    "uvicorn>=0.34.3",
 ]
 
 [dependency-groups]
@@ -15,3 +16,13 @@ dev = [
 
 [tool.autopep8]
 max-line-length = 80
+
+[build-system]
+requires = ["setuptools>=42", "wheel", "nuitka", "toml"]
+build-backend = "nuitka.distutils.Build"
+
+[tool.setuptools.package-data]
+some_package = []
+
+[tool.nuitka]
+nofollow-import-to = ["*.tests", "*.distutils"]

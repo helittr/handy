@@ -6,7 +6,8 @@ import pathlib
 from typing import Annotated
 # import logging
 
-from fastapi import APIRouter, Path, Response, Query
+from fastapi import APIRouter, Path, Response, Query, status
+
 # from fastapi.responses import JSONResponse
 from . import script_manager as smgr
 from .script_manager import ExecuteParam
@@ -67,14 +68,42 @@ def get_log(
 def get_tasks():
     """get task list"""
     task = {
+        "lastUpdate": 0,
         "tasks": [
             {
-                "taskid": task.taskid,
-                "status": task.get_status(),
-                "cmdid": task.info.id,
+                "taskid": t.taskid,
+                "status": t.get_status(),
+                "cmdid": t.info.id,
             }
-            for _, task in manager.task.items()
-        ]
+            for _, t in manager.task.items()
+        ],
     }
+
+    for _, t in manager.task.items():
+        if t.starttime and task["lastUpdate"] < t.starttime:
+            task["lastUpdate"] = t.starttime
+
+        if t.endtime and task["lastUpdate"] < t.endtime:
+            task["lastUpdate"] = t.endtime
+
+    if task["lastUpdate"] < manager.lastupdate:
+        task["lastUpdate"] = manager.lastupdate
+
     print("task", task)
     return task
+
+
+@router.delete("/commands/tasks/{tid}/delete", summary="删除任务")
+def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")]):
+    """delete task"""
+    print("delete task", tid)
+    try:
+        manager.del_task(tid)
+        return {"code": 0, "message": "ok"}
+    except ValueError as e:
+        print("exception", e)
+        return Response(
+            content={"code": 400, "message": str(e)},
+            status_code=status.HTTP_404_NOT_FOUND,
+            media_type="application/json",
+        )

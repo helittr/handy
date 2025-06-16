@@ -9,3 +9,4 @@ tmp/
 
 # Virtual environments
 .venv
+out/

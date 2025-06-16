@@ -56,7 +56,7 @@ class SelectOption(BaseModel):
 
     label: str
     value: str
-    
+
 
 class SelectParameter(BaseModel):
     """Represents a selection parameter with multiple options.
@@ -82,8 +82,10 @@ class SelectParameter(BaseModel):
         """Checks if the provided option is valid for this parameter."""
         return option in [opt.value for opt in self.options]
 
+
 class SwitchParameter(BaseModel):
-    """ Represents a switch parameter. """
+    """Represents a switch parameter."""
+
     type: t.Literal["switch"]
     name: str
     required: bool = True
@@ -94,6 +96,7 @@ class SwitchParameter(BaseModel):
     def check_value(self, value: bool) -> bool:
         """Checks if the provided value is valid for this parameter."""
         return isinstance(value, bool)
+
 
 # Define the script information
 class GlobalId:
@@ -196,7 +199,7 @@ class RootGroup(RootModel):
 class ExecuteParam(RootModel):
     """the parameter of script to execute"""
 
-    root: t.Dict[str, str|bool]
+    root: t.Dict[str, str | bool]
 
 
 class ScriptStatus(Enum):
@@ -219,8 +222,8 @@ class BaseScript:
         self.out: t.Optional[BufferedWriter] = None
         self.process: t.Optional[subprocess.Popen] = None
         self.createtime: float = time.time()
-        self.starttime: float|None = None
-        self.endtime: float|None = None
+        self.starttime: float | None = None
+        self.endtime: float | None = None
 
         if self.logfile.exists():
             raise FileExistsError(f"{self.logfile.absolute()} is already exist")
@@ -266,6 +269,7 @@ class BaseScript:
             self.status = ScriptStatus.FINISH
             self.endtime = time.time()
             self.out.close()
+            self.process = None
 
         return self.status
 
@@ -282,7 +286,8 @@ class BaseScript:
                 return f.read(max_size)
         except FileNotFoundError:
             print(f"Log file not found: {self.logfile.absolute()}")
-            return b''
+            return b""
+
 
 class ScriptFactory:
     """Factory class to create script instances based on their type."""
@@ -370,6 +375,7 @@ class ScriptManager:
 
         self.logdir: Path = Path("./tmp/log")
         self.logdir.mkdir(parents=True, exist_ok=True)
+        self.lastupdate: float = time.time()
 
     def find_script_info(self, sid: IdType) -> t.Optional[ScriptInfo]:
         """Find a script by its ID in the script hierarchy.
@@ -404,7 +410,7 @@ class ScriptManager:
                     return found_script
         return None
 
-    def execute_script(self, sid: IdType, parameters: ExecuteParam)-> IdType:
+    def execute_script(self, sid: IdType, parameters: ExecuteParam) -> IdType:
         """Executes a script by its ID and returns execution ID.
 
         Args:
@@ -421,9 +427,7 @@ class ScriptManager:
         if scriptinfo:
             task = ScriptFactory.create_script(
                 scriptinfo,
-                self.logdir.joinpath(
-                    f"{sid}-{scriptinfo.name}-{time.time()}.log"
-                ),
+                self.logdir.joinpath(f"{sid}-{scriptinfo.name}-{time.time()}.log"),
             )
             self.task[task.taskid] = task
             task.execute(parameters)
@@ -449,6 +453,17 @@ class ScriptManager:
     def get_task(self) -> t.Dict[IdType, t.Type[BaseScript]]:
         """get task"""
         return self.task
+
+    def del_task(self, tid: IdType) -> bool:
+        """delete task"""
+        if tid in self.task:
+            if self.task[tid].get_status() == ScriptStatus.RUNNING:
+                raise ValueError("Cannot delete running task.")
+            del self.task[tid]
+            self.lastupdate = time.time()
+            return True
+        raise ValueError(f"Task '{tid}' not found.")
+
 
 if __name__ == "__main__":
     # Example usage
