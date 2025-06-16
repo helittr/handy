@@ -9,9 +9,8 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Response, Query, status
 
 # from fastapi.responses import JSONResponse
-from . import script_manager as smgr
-from .script_manager import ExecuteParam
-
+from . import scriptManager as smgr
+from .models import ExecuteParam
 
 router = APIRouter(prefix="/adb", tags=["ADB"])
 
