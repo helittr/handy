@@ -2,21 +2,16 @@
 api scriptmanager
 """
 
-import pathlib
 from typing import Annotated
-# import logging
-
 from fastapi import APIRouter, Path, Response, Query, status
-
-# from fastapi.responses import JSONResponse
-from . import scriptManager as smgr
-from .models import ExecuteParam
+from fastapi.responses import JSONResponse
+from ..config.settings import SCRIPTS_JSON
+from ..core.scriptManager import ScriptManager
+from ..models.script import ExecuteParam
 
 router = APIRouter(prefix="/adb", tags=["ADB"])
 
-manager = smgr.ScriptManager(
-    str(pathlib.Path(__file__).joinpath("../scripts/scripts.json"))
-)
+manager = ScriptManager(str(SCRIPTS_JSON))
 
 
 @router.get("/commands", summary="获取ADB命令列表")
@@ -34,17 +29,20 @@ def exe_command(
     print(f"excute command{sid}", params)
     try:
         tid = manager.execute_script(sid, params)
-        return {"status": "ok", "code": 0, "execution_id": tid}
+        return {"status": "ok", "code": 0, "data": {"taskId": tid}}
     except ValueError as e:
         print("exception", e)
-        return Response(content=str(e), status_code=400)
+        return JSONResponse(
+            content={"code": 400, "status": "error", "message": str(e)},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @router.get("/commands/{sid}/status", summary="获取指定命令状态")
 def get_status(sid: Annotated[int, Path(title="The ID of the command to get")]):
     """get command status"""
     st = manager.get_script_status(sid)
-    return {"id": sid, "code": st}
+    return {"id": sid, "status": st}
 
 
 @router.get("/commands/tasks/{tid}/log", summary="获取任务日志")
@@ -70,9 +68,10 @@ def get_tasks():
         "lastUpdate": 0,
         "tasks": [
             {
-                "taskid": t.taskid,
+                "taskId": t.taskid,
                 "status": t.get_status(),
-                "cmdid": t.info.id,
+                "commandId": t.info.id,
+                "createdAt": t.starttime,
             }
             for _, t in manager.task.items()
         ],

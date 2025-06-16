@@ -1,8 +1,9 @@
 """ADB脚本工厂模块"""
 
 import typing as t
+from ..utils.validator import validate_parameters
 from .baseScript import BaseScript
-from .models import ScriptInfo, ExecuteParam
+from ..models.script import ScriptInfo, ExecuteParam
 
 
 class ScriptFactory:
@@ -37,19 +38,22 @@ class WinPowerShellScript(BaseScript):
     """Windows PowerShell脚本实现类"""
 
     def _get_cmdline(self, parameters: ExecuteParam):
-        parameters = parameters.model_dump()
+        validate_parameters(parameters.model_dump(), self.info)
         cmdline = [
             "powershell",
             "-NoLogo",
             "-NonInteractive",
             "-File",
             self.info.path,
-        ] + [
-            f"{param.name if param.name.startswith('-') else ''} {'' if isinstance(parameters[param.name], bool) else parameters[param.name]}"
-            for param in self.info.parameters
-            if param.name in parameters
         ]
-        print(cmdline)
-        print(self.info.parameters)
-        print(parameters)
+
+        for param in self.info.parameters:
+            if param.name.startswith("-"):
+                cmdline.append(param.name)
+            if (
+                not isinstance(parameters.root[param.name], bool)
+                or parameters.root[param.name]
+            ):
+                cmdline.append(str(parameters.root[param.name]))
+
         return cmdline

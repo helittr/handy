@@ -4,7 +4,16 @@ import time
 import typing as t
 from pathlib import Path
 
-from .models import RootGroup, IdType, ScriptInfo, GroupInfo, ExecuteParam, ScriptStatus
+from ..config.settings import LOG_DIR
+from ..utils.logger import get_log_path
+from ..models.script import (
+    RootGroup,
+    IdType,
+    ScriptInfo,
+    GroupInfo,
+    ExecuteParam,
+    ScriptStatus,
+)
 from .scriptFactory import ScriptFactory
 from .baseScript import BaseScript
 
@@ -22,8 +31,7 @@ class ScriptManager:
             self.source.read_text(encoding="utf-8"), context={"source": self.source}
         )
         self.task: t.Dict[IdType, BaseScript] = {}
-        self.logdir: Path = Path("./tmp/log")
-        self.logdir.mkdir(parents=True, exist_ok=True)
+        self.logdir: Path = LOG_DIR
         self.lastupdate: float = time.time()
 
     def find_script_info(self, sid: IdType) -> t.Optional[ScriptInfo]:
@@ -54,7 +62,7 @@ class ScriptManager:
         if scriptinfo:
             task = ScriptFactory.create_script(
                 scriptinfo,
-                self.logdir.joinpath(f"{sid}-{scriptinfo.name}-{time.time()}.log"),
+                get_log_path(sid, scriptinfo.name),
             )
             self.task[task.taskid] = task
             task.execute(parameters)

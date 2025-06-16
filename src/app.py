@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .adb.api import router as adb_router
+from src.adb.api.routes import router as adb_router
 
 app = FastAPI()
 
@@ -11,7 +11,7 @@ origins = [
     "http://localhost",
     "http://localhost:5173",
     "http://127.0.0.1",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
@@ -26,4 +26,3 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": "Hello, World!"}
-

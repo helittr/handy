@@ -9,7 +9,7 @@ from abc import abstractmethod
 from pathlib import Path
 from abc import ABC
 
-from .models import ScriptInfo, ExecuteParam, ScriptStatus
+from ..models.script import ScriptInfo, ExecuteParam, ScriptStatus
 
 
 class BaseScript(ABC):

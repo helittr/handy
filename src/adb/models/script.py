@@ -48,12 +48,9 @@ class ScriptInfo(BaseModel):
     path: Annotated[str, AfterValidator(validate_path)]
     label: str
     description: str
-    parameters: t.List[
-        Annotated[
-            InputParameter | SelectParameter | SwitchParameter,
-            Field(default_factory=list, discriminator="type"),
-        ]
-    ]
+    parameters: t.List[InputParameter | SelectParameter | SwitchParameter] = Field(
+        default_factory=list
+    )
 
 
 class GroupInfo(BaseModel):
