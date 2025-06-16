@@ -82,7 +82,7 @@ class ScriptManager:
         return self.task
 
     def del_task(self, tid: IdType) -> bool:
-        """删除任务"""
+        """delete task"""
         if tid in self.task:
             if self.task[tid].get_status() == ScriptStatus.RUNNING:
                 raise ValueError("Cannot delete running task.")
@@ -90,3 +90,16 @@ class ScriptManager:
             self.lastupdate = time.time()
             return True
         raise ValueError(f"Task '{tid}' not found.")
+
+    def stop_task(self, tid: IdType) -> bool:
+        """停止正在运行的任务"""
+        if tid not in self.task:
+            raise ValueError(f"Task '{tid}' not found.")
+
+        task = self.task[tid]
+        if task.get_status() != ScriptStatus.RUNNING:
+            raise ValueError(f"Cannot stop task in {task.get_status()} state")
+
+        task.stop()
+        self.lastupdate = time.time()
+        return True

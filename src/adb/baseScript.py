@@ -87,3 +87,22 @@ class BaseScript(ABC):
         except FileNotFoundError:
             print(f"Log file not found: {self.logfile.absolute()}")
             return b""
+
+    def stop(self) -> None:
+        """停止正在运行的脚本"""
+        if self.status != ScriptStatus.RUNNING:
+            raise ValueError(f"Cannot stop script in {self.status} state")
+
+        if self.process:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+
+        self.status = ScriptStatus.TERMINATED
+        self.endtime = time.time()
+        if self.out:
+            self.out.close()
+        self.process = None
+        print(f"Script '{self.info.name}' stopped by user request")

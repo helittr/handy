@@ -106,3 +106,19 @@ def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")])
             status_code=status.HTTP_404_NOT_FOUND,
             media_type="application/json",
         )
+
+
+@router.post("/commands/tasks/{tid}/stop", summary="停止任务")
+def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")]):
+    """stop running task"""
+    print("stopping task", tid)
+    try:
+        manager.stop_task(tid)
+        return {"code": 0, "message": "ok"}
+    except ValueError as e:
+        print("exception", e)
+        return Response(
+            content={"code": 400, "message": str(e)},
+            status_code=status.HTTP_400_BAD_REQUEST,
+            media_type="application/json",
+        )

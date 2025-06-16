@@ -97,3 +97,4 @@ class ScriptStatus(Enum):
     PRE = auto()
     RUNNING = auto()
     FINISH = auto()
+    TERMINATED = auto()
