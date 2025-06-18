@@ -72,6 +72,7 @@ def get_tasks():
                 "status": t.get_status(),
                 "commandId": t.info.id,
                 "createdAt": t.starttime,
+                "cmdline": t.cmdline,
             }
             for _, t in manager.task.items()
         ],

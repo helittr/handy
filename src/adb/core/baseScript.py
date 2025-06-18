@@ -25,6 +25,7 @@ class BaseScript(ABC):
         self.createtime: float = time.time()
         self.starttime: float | None = None
         self.endtime: float | None = None
+        self.cmdline: str = ""
 
         if self.logfile.exists():
             raise FileExistsError(f"{self.logfile.absolute()} is already exist")
@@ -59,6 +60,7 @@ class BaseScript(ABC):
         self.status = ScriptStatus.RUNNING
 
         self.out = self.logfile.open(mode="wb")
+        self.cmdline = " ".join(self._get_cmdline(parameters))
         self.process = subprocess.Popen(self._get_cmdline(parameters), stdout=self.out)
 
     def get_status(self) -> ScriptStatus:
