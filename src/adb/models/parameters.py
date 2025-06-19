@@ -1,20 +1,28 @@
 """ADB脚本参数模型"""
 
+from abc import ABC, abstractmethod
 from typing import Any, Literal, Optional, Dict
 from pydantic import BaseModel, Field
 
 
-ParameterType = Literal["input", "select", "switch"]
+class BaseParameter(BaseModel, ABC):
+    name: str
+    label: str
+    type: str
+    default: Optional[Any]
+    description: str = ""
+    required: bool = True
+
+    @abstractmethod
+    def check_value(self, value: Any) -> bool:
+        pass
 
 
-class InputParameter(BaseModel):
+class InputParameter(BaseParameter):
     """输入参数模型"""
 
-    name: str
-    type: ParameterType
-    default: Optional[Any] = None
-    description: Optional[str] = None
-    required: bool = True
+    type: Literal["input"]
+    default: Optional[str]
 
     def check_value(self, value: Any) -> bool:
         """验证输入参数值"""
@@ -30,15 +38,12 @@ class SelectOption(BaseModel):
     value: str
 
 
-class SelectParameter(BaseModel):
+class SelectParameter(BaseParameter):
     """选择参数模型"""
 
-    name: str
-    type: ParameterType
-    options: list[SelectOption]
-    default: Optional[Any] = None
-    description: Optional[str] = None
-    required: bool = True
+    type: Literal["select"]
+    default: Optional[str]
+    options: list[SelectOption] = Field(default_factory=list)
 
     def check_value(self, value: Any) -> bool:
         """验证选择参数值"""
@@ -47,14 +52,11 @@ class SelectParameter(BaseModel):
         return value in [option.value for option in self.options]
 
 
-class SwitchParameter(BaseModel):
+class SwitchParameter(BaseParameter):
     """开关参数模型"""
 
-    name: str
-    type: ParameterType
-    default: bool = False
-    description: Optional[str] = None
-    required: bool = False
+    type: Literal["switch"]
+    default: Optional[bool]
 
     def check_value(self, value: Any) -> bool:
         """验证开关参数值"""
