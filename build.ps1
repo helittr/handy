@@ -1,2 +1,2 @@
 
-uv run nuitka --standalone --show-progress test.py
+uv run nuitka --standalone --show-progress src/main.py

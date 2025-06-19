@@ -1,23 +1,22 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
-from src.adb.api.routes import router as adb_router
+from adb.api.routes import router as adb_router
 
 app = FastAPI()
 
+
 app.include_router(adb_router)
 
-origins = [
-    "http://localhost",
-    "http://localhost:5173",
-    "http://127.0.0.1",
-    "http://127.0.0.1:5173",
-]
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -25,4 +24,4 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "Hello, World!"}
+    return RedirectResponse(url="static/index.html")
