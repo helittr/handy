@@ -3,11 +3,12 @@ api scriptmanager
 """
 
 from typing import Annotated
-from fastapi import APIRouter, Path, Response, Query, status
+from fastapi import APIRouter, Path, Response, Query, status, WebSocket
 from fastapi.responses import JSONResponse
 from ..config.settings import SCRIPTS_JSON
 from ..core.scriptManager import ScriptManager
 from ..models.script import ExecuteParam
+import asyncio
 
 router = APIRouter(prefix="/adb", tags=["ADB"])
 
@@ -122,3 +123,45 @@ def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")]):
             status_code=status.HTTP_400_BAD_REQUEST,
             media_type="application/json",
         )
+
+@router.websocket("/ws")
+async def websocket_tasks(websocket: WebSocket):
+    """WebSocket connection to get task updates"""
+
+    await websocket.accept()
+    print("WebSocket connection established")
+    try:
+        while True:
+            task = {
+                    "lastUpdate": 0,
+                    "tasks": [
+                        {
+                            "taskId": t.taskid,
+                            "status": t.get_status().value,
+                            "commandId": t.info.id,
+                            "createdAt": t.starttime,
+                            "cmdline": t.cmdline,
+                        }
+                        for _, t in manager.task.items()
+                    ],
+            }
+
+            for _, t in manager.task.items():
+                if t.starttime and task["lastUpdate"] < t.starttime:
+                    task["lastUpdate"] = t.starttime
+
+                if t.endtime and task["lastUpdate"] < t.endtime:
+                    task["lastUpdate"] = t.endtime
+
+            if task["lastUpdate"] < manager.lastupdate:
+                task["lastUpdate"] = manager.lastupdate
+
+            print("send task", task)
+            
+            await websocket.send_json(task)
+            await asyncio.sleep(1)
+
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        await websocket.close()

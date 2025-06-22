@@ -43,6 +43,8 @@ class WinPowerShellScript(BaseScript):
             "powershell",
             "-NoLogo",
             "-NonInteractive",
+            "-ExecutionPolicy",
+            "remoteSigned",
             "-File",
             self.info.path,
         ]

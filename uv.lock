@@ -136,6 +136,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "uvicorn" },
+    { name = "websockets" },
 ]
 
 [package.dev-dependencies]
@@ -147,6 +148,7 @@ dev = [
 requires-dist = [
     { name = "fastapi" },
     { name = "uvicorn", specifier = ">=0.34.3" },
+    { name = "websockets", specifier = ">=15.0.1" },
 ]
 
 [package.metadata.requires-dev]
