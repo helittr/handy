@@ -2,6 +2,7 @@
 api scriptmanager
 """
 
+import logging
 from typing import Annotated
 from fastapi import APIRouter, Path, Response, Query, status, WebSocket
 from fastapi.responses import JSONResponse
@@ -27,12 +28,12 @@ def exe_command(
     params: ExecuteParam,
 ):
     """the api to execute script"""
-    print(f"excute command{sid}", params)
+    logging.info(f"excute command{sid} {params}")
     try:
         tid = manager.execute_script(sid, params)
         return {"status": "ok", "code": 0, "data": {"taskId": tid}}
     except ValueError as e:
-        print("exception", e)
+        logging.error(f"exception: {e}")
         return JSONResponse(
             content={"code": 400, "status": "error", "message": str(e)},
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -55,10 +56,10 @@ def get_log(
     """get command log"""
     try:
         log = manager.get_script_log(tid, pos, size)
-        print("response log", log.decode("gb2312", errors="ignore"))
+        logging.debug(f"response log: {log.decode('gb2312', errors='ignore')}")
         return Response(content=log, media_type="application/octet-stream")
     except ValueError as e:
-        print("exception", e)
+        logging.error(f"exception: {e}")
         return Response(content=str(e), status_code=400)
 
 
@@ -89,19 +90,19 @@ def get_tasks():
     if task["lastUpdate"] < manager.lastupdate:
         task["lastUpdate"] = manager.lastupdate
 
-    print("task", task)
+    logging.debug(f"task: {task}")
     return task
 
 
 @router.delete("/commands/tasks/{tid}/delete", summary="删除任务")
 def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")]):
     """delete task"""
-    print("delete task", tid)
+    logging.info(f"delete task: {tid}")
     try:
         manager.del_task(tid)
         return {"code": 0, "message": "ok"}
     except ValueError as e:
-        print("exception", e)
+        logging.error(f"exception: {e}")
         return Response(
             content={"code": 400, "message": str(e)},
             status_code=status.HTTP_404_NOT_FOUND,
@@ -112,12 +113,12 @@ def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")])
 @router.post("/commands/tasks/{tid}/stop", summary="停止任务")
 def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")]):
     """stop running task"""
-    print("stopping task", tid)
+    logging.info(f"stopping task: {tid}")
     try:
         manager.stop_task(tid)
         return {"code": 0, "message": "ok"}
     except ValueError as e:
-        print("exception", e)
+        logging.info(f"exception: {e}")
         return Response(
             content={"code": 400, "message": str(e)},
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -129,7 +130,7 @@ async def websocket_tasks(websocket: WebSocket):
     """WebSocket connection to get task updates"""
 
     await websocket.accept()
-    print("WebSocket connection established")
+    logging.info("WebSocket connection established")
     try:
         while True:
             task = {
@@ -156,12 +157,12 @@ async def websocket_tasks(websocket: WebSocket):
             if task["lastUpdate"] < manager.lastupdate:
                 task["lastUpdate"] = manager.lastupdate
 
-            print("send task", task)
+            # print("send task", task)
             
             await websocket.send_json(task)
             await asyncio.sleep(1)
 
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logging.info(f"WebSocket error: {e}")
     finally:
         await websocket.close()

@@ -1,5 +1,6 @@
 """ADB脚本基础类模块"""
 
+import logging
 import os
 import time
 import subprocess
@@ -49,10 +50,10 @@ class BaseScript(ABC):
 
     def execute(self, parameters: ExecuteParam) -> None:
         """执行脚本"""
-        print(f"Running script: script information:{self.info}")
+        logging.info(f"Running script: script information:{self.info}")
 
         self.validate_parameters(parameters)
-        print(f"Executing script '{self.info.name}' with parameters: {parameters}")
+        logging.info(f"Executing script '{self.info.name}' with parameters: {parameters}")
 
         if self.status != ScriptStatus.PRE:
             raise SyntaxError(f"script status exception,{self.status}")
@@ -66,7 +67,7 @@ class BaseScript(ABC):
     def get_status(self) -> ScriptStatus:
         """获取脚本状态"""
         if self.process and self.process.poll() is not None:
-            print(
+            logging.info(
                 f"Script '{self.info.name}' is finished code {self.process.returncode}"
             )
             self.status = ScriptStatus.FINISH
@@ -83,11 +84,11 @@ class BaseScript(ABC):
                     f.flush()
                     f.seek(pos, os.SEEK_SET)
                 except ValueError as e:
-                    print(f"Invalid position: {pos}, error: {e}")
+                    logging.info(f"Invalid position: {pos}, error: {e}")
                     return b""
                 return f.read(max_size)
         except FileNotFoundError:
-            print(f"Log file not found: {self.logfile.absolute()}")
+            logging.error(f"Log file not found: {self.logfile.absolute()}")
             return b""
 
     def stop(self) -> None:
@@ -107,4 +108,4 @@ class BaseScript(ABC):
         if self.out:
             self.out.close()
         self.process = None
-        print(f"Script '{self.info.name}' stopped by user request")
+        logging.info(f"Script '{self.info.name}' stopped by user request")

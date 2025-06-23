@@ -1,5 +1,6 @@
 """ADB脚本管理器模块"""
 
+import logging
 import time
 import typing as t
 from pathlib import Path
@@ -80,7 +81,7 @@ class ScriptManager:
     def get_script_log(self, tid: IdType, pos: int = 0, size: int = 0) -> bytes:
         """获取脚本日志"""
         task = self.task.get(tid)
-        print("get log", task, self.task)
+        logging.debug("get log %s %s", task, self.task)
         if task is None:
             raise ValueError(f"Task '{tid}' not found.")
         return task.get_log(pos, size)
