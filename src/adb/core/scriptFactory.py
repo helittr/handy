@@ -51,12 +51,10 @@ class WinPowerShellScript(BaseScript):
 
         for param in self.info.parameters:
             if param.name.startswith("-"):
-                if (
-                    isinstance(parameters.root[param.name], bool)
-                    and parameters.root[param.name]
-                ):
-                    cmdline.append(param.name)
-                else:
+                if isinstance(parameters.root[param.name], bool):
+                    if parameters.root[param.name]:
+                        cmdline.append(param.name)
+                elif parameters.root[param.name].strip() != '':
                     cmdline.append(param.name)
 
             if isinstance(parameters.root[param.name], str) and len(

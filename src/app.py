@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +12,10 @@ app = FastAPI()
 
 app.include_router(adb_router)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+
+static_dir = Path(__file__).parent.joinpath("static")
+print(f"Static files directory: {static_dir}")
+app.mount('/static', StaticFiles(directory=static_dir), name="static")
 
 origins = ["*"]
 
