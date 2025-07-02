@@ -1,10 +1,13 @@
+write-host "ÄãºÃ°¡£¬ÊÀ½ç£¡"
 
 write-host "This is an example script for PowerShell."
-# è¾“å‡ºæ‰€æœ‰å‚æ•°
+# Êä³öËùÓĞ²ÎÊı
 write-host "Parameters: $args"
-# è¾“å‡ºå½“å‰æ—¥æœŸå’Œæ—¶é—´    
+# Êä³öµ±Ç°ÈÕÆÚºÍÊ±¼ä    
 write-host "Start Current Date and Time: $(Get-Date)"
 
 Start-Sleep 10
 
 write-host "End Current Date and Time: $(Get-Date)"
+
+write-host "ÄãºÃ°¡£¬ÊÀ½ç£¡"

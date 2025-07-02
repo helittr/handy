@@ -35,7 +35,7 @@ class BaseScript(ABC):
         """验证执行参数"""
         parameters = parameters.model_dump()
         for param in self.info.parameters:
-            if param.name not in parameters.keys():
+            if param.name not in parameters.keys() and param.required:
                 raise ValueError(f"Missing required parameter: {param.name}")
 
             if not param.check_value(parameters[param.name]):
@@ -62,7 +62,7 @@ class BaseScript(ABC):
 
         self.out = self.logfile.open(mode="wb")
         self.cmdline = str(self._get_cmdline(parameters))
-        self.process = subprocess.Popen(self._get_cmdline(parameters), stdout=self.out)
+        self.process = subprocess.Popen(self._get_cmdline(parameters), stdout=self.out, stderr=self.out, stdin=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
 
     def get_status(self) -> ScriptStatus:
         """获取脚本状态"""

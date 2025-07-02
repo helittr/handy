@@ -133,6 +133,10 @@
                             {
                                 "label": "选项3",
                                 "value": "value3"
+                            },
+                            {
+                                "label": "选项4",
+                                "value": "value4"
                             }
                         ]
                     }

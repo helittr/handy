@@ -112,3 +112,12 @@ class ScriptManager:
         task.stop()
         self.lastupdate = time.time()
         return True
+
+    def reload(self):
+        """重新加载脚本"""
+        self.rootgroup = RootGroup.model_validate_json(
+            self.source.read_text(encoding="utf-8"), context={"source": self.source}
+        )
+        self.task.clear()
+        self.lastupdate = time.time()
+        logging.info("ScriptManager reloaded successfully.")

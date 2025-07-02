@@ -25,6 +25,7 @@ if __name__ == "__main__":
         height=1000,
         draggable=True,
         resizable=True,
+        min_size=(800, 600),
     )
 
-    webview.start()
+    webview.start(debug=True)
