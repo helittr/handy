@@ -53,16 +53,24 @@ class BaseScript(ABC):
         logging.info(f"Running script: script information:{self.info}")
 
         self.validate_parameters(parameters)
-        logging.info(f"Executing script '{self.info.name}' with parameters: {parameters}")
+        logging.info(
+            f"Executing script '{self.info.name}' with parameters: {parameters}"
+        )
 
         if self.status != ScriptStatus.PRE:
             raise SyntaxError(f"script status exception,{self.status}")
         self.starttime = time.time()
         self.status = ScriptStatus.RUNNING
 
-        self.out = self.logfile.open(mode="wb")
+        self.out = self.logfile.open(mode="w")
         self.cmdline = str(self._get_cmdline(parameters))
-        self.process = subprocess.Popen(self._get_cmdline(parameters), stdout=self.out, stderr=self.out, stdin=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+        self.process = subprocess.Popen(
+            self._get_cmdline(parameters),
+            stdout=self.out,
+            stderr=self.out,
+            stdin=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
 
     def get_status(self) -> ScriptStatus:
         """获取脚本状态"""

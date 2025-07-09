@@ -4,7 +4,6 @@ from threading import Thread
 import webview
 import logging
 
-
 class UvicornThread(Thread):
     def run(self):
         config = uvicorn.Config(app, port=8001, log_level="info", reload=True)
@@ -25,7 +24,7 @@ if __name__ == "__main__":
         height=1000,
         draggable=True,
         resizable=True,
-        min_size=(800, 600),
+        min_size=(800, 600)
     )
 
-    webview.start(debug=True)
+    webview.start(debug=False)

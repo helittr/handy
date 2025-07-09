@@ -29,6 +29,7 @@ def generate_task_list() -> dict:
                 "commandId": t.info.id,
                 "createdAt": t.starttime,
                 "cmdline": t.cmdline,
+                "logfile": str(t.logfile),
             }
             for _, t in manager.task.items()
         ],

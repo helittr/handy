@@ -7,8 +7,8 @@ from ..config import settings
 
 def get_log_path(script_id: int, script_name: str) -> Path:
     """获取日志文件路径"""
-    timestamp = int(time.time())
-    return settings.LOG_DIR / f"{script_id}-{script_name}-{timestamp}.log"
+    timestamp = time.strftime("%Y%m%d-%H%M%S", time.localtime())
+    return settings.LOG_DIR / f"{timestamp}-{script_name}.log"
 
 
 def setup_logging():

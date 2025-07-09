@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
+from utiles.env import is_nuitka
+
 from adb.api.routes import router as adb_router
 
 app = FastAPI()
@@ -12,10 +14,16 @@ app = FastAPI()
 
 app.include_router(adb_router)
 
+if is_nuitka():
+    static_dir = Path(__file__).parent.joinpath("static")
+else:
+    static_dir = Path(__file__).parent.parent.joinpath("../../handy/dist")
 
-static_dir = Path(__file__).parent.joinpath("static")
 print(f"Static files directory: {static_dir}")
-app.mount('/static', StaticFiles(directory=static_dir), name="static")
+if static_dir.exists():
+    app.mount('/static', StaticFiles(directory=static_dir), name="static")
+else:
+    print(f"Static files directory does not exist: {static_dir}")
 
 origins = ["*"]
 
