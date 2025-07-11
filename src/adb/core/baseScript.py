@@ -64,13 +64,19 @@ class BaseScript(ABC):
 
         self.out = self.logfile.open(mode="w")
         self.cmdline = str(self._get_cmdline(parameters))
-        self.process = subprocess.Popen(
-            self._get_cmdline(parameters),
-            stdout=self.out,
-            stderr=self.out,
-            stdin=subprocess.DEVNULL,
-            creationflags=subprocess.CREATE_NO_WINDOW,
-        )
+        logging.warning(f"execute: Command line: {self.cmdline}")
+        try:
+            self.process = subprocess.Popen(
+                self._get_cmdline(parameters),
+                stdout=self.out,
+                stderr=self.out,
+                stdin=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+        except Exception as e:
+            logging.error(f"Failed to start script '{self.info.name}': {e}", stack_info=True)
+            self.status = ScriptStatus.FINISH
+            self.endtime = time.time()
 
     def get_status(self) -> ScriptStatus:
         """获取脚本状态"""

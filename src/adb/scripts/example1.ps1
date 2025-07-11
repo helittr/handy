@@ -1,11 +1,9 @@
-﻿[console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+﻿write-host "你好啊，世界！"
 
-write-host "你好啊，世界！"
-
-write-host "This is an example script for windows PowerShell."
+write-host "This is an example script for PowerShell."
 
 write-host "Parameters: $args"
-
+   
 write-host "Start Current Date and Time: $(Get-Date)"
 
 Start-Sleep 10

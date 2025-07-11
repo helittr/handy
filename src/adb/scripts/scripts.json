@@ -143,5 +143,54 @@
                 ]
             }
         ]
+    },
+    {
+        "name": "powershell分组2",
+        "type": "scriptgroup",
+        "label": "powershell分组2",
+        "description": "This is an example script group.",
+        "children": [
+            {
+                "name": "示例1",
+                "type": "powershell",
+                "path": "./example1.ps1",
+                "label": "示例脚本",
+                "description": "This is an example script.",
+                "parameters": [
+                    {
+                        "name": "参数1",
+                        "type": "input",
+                        "default": "defualtvalue",
+                        "label": "参数1",
+                        "description": "An input parameter."
+                    },
+                    {
+                        "name": "参数2",
+                        "type": "select",
+                        "default": "",
+                        "label": "参数2",
+                        "description": "A select parameter.",
+                        "options": [
+                            {
+                                "label": "选项1",
+                                "value": "value1"
+                            },
+                            {
+                                "label": "选项2",
+                                "value": "value2"
+                            },
+                            {
+                                "label": "选项3",
+                                "value": "value3"
+                            },
+                            {
+                                "label": "选项4",
+                                "value": "value4"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
     }
 ]

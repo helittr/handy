@@ -63,3 +63,34 @@ class WinPowerShellScript(BaseScript):
                 cmdline.append(parameters.root[param.name].strip())
 
         return cmdline
+
+@ScriptFactory.register_script_type("powershell")
+class PowerShellScript(BaseScript):
+    """PowerShell脚本实现类"""
+
+    def _get_cmdline(self, parameters: ExecuteParam):
+        validate_parameters(parameters.model_dump(), self.info)
+        cmdline = [
+            "pwsh",
+            "-NoLogo",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "remoteSigned",
+            "-File",
+            self.info.path,
+        ]
+
+        for param in self.info.parameters:
+            if param.name.startswith("-"):
+                if isinstance(parameters.root[param.name], bool):
+                    if parameters.root[param.name]:
+                        cmdline.append(param.name)
+                elif parameters.root[param.name].strip() != '':
+                    cmdline.append(param.name)
+
+            if isinstance(parameters.root[param.name], str) and len(
+                parameters.root[param.name].strip()
+            ):
+                cmdline.append(parameters.root[param.name].strip())
+
+        return cmdline

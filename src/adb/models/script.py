@@ -44,7 +44,7 @@ class ScriptInfo(BaseModel):
 
     id: IdType = Field(default_factory=GlobalId.get_next_id)
     name: str
-    type: t.Literal["winpowershell"]
+    type: t.Literal["winpowershell", "powershell"]
     path: Annotated[str, AfterValidator(validate_path)]
     label: str
     description: str
