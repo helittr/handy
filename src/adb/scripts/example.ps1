@@ -6,9 +6,17 @@ write-host "This is an example script for windows PowerShell."
 
 write-host "Parameters: $args"
 
+Get-ChildItem Env:
+
 write-host "Start Current Date and Time: $(Get-Date)"
 
-Start-Sleep 10
+$cnt = 0
+
+while ($cnt -lt 100) {
+    write-host "Current Count: $cnt"
+    Start-Sleep -Milliseconds  100
+    $cnt++
+}
 
 write-host "End Current Date and Time: $(Get-Date)"
 

@@ -66,12 +66,17 @@ class BaseScript(ABC):
         self.cmdline = str(self._get_cmdline(parameters))
         logging.warning(f"execute: Command line: {self.cmdline}")
         try:
+
+            env = os.environ.copy()
+            env['HANDY_SCRIPT_LOG_FILE'] = str(self.logfile.absolute())
+
             self.process = subprocess.Popen(
                 self._get_cmdline(parameters),
                 stdout=self.out,
                 stderr=self.out,
                 stdin=subprocess.DEVNULL,
                 creationflags=subprocess.CREATE_NO_WINDOW,
+                env=env
             )
         except Exception as e:
             logging.error(f"Failed to start script '{self.info.name}': {e}", stack_info=True)
