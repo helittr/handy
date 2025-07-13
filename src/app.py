@@ -17,7 +17,7 @@ app.include_router(adb_router)
 if is_nuitka():
     static_dir = Path(__file__).parent.joinpath("static")
 else:
-    static_dir = Path(__file__).parent.parent.joinpath("../../handy/dist")
+    static_dir = Path(__file__).parent.parent.joinpath("../handy/dist")
 
 print(f"Static files directory: {static_dir}")
 if static_dir.exists():
