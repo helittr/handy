@@ -8,11 +8,12 @@ from fastapi.responses import RedirectResponse
 from utiles.env import is_nuitka
 
 from adb.api.routes import router as adb_router
+from sysapi.router import router as sys_router
 
 app = FastAPI()
 
-
 app.include_router(adb_router)
+app.include_router(sys_router)
 
 if is_nuitka():
     static_dir = Path(__file__).parent.joinpath("static")

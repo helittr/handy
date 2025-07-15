@@ -1,9 +1,7 @@
 """ADB脚本数据模型模块"""
 
-import os
 import typing as t
 from pathlib import Path
-from abc import abstractmethod
 from enum import Enum, auto
 
 from pydantic import BaseModel, RootModel, Field, AfterValidator
@@ -98,3 +96,7 @@ class ScriptStatus(Enum):
     RUNNING = auto()
     FINISH = auto()
     TERMINATED = auto()
+
+class ManagerInfo(BaseModel):
+
+    logpath: str

@@ -5,16 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi",
+    "fastapi>=0.115.12",
     "pywebview>=5.4",
     "uvicorn>=0.34.3",
-    "websockets>=15.0.1",
 ]
 
 [dependency-groups]
-dev = [
-    "fastapi[standard]>=0.115.12",
-]
 
 [tool.autopep8]
 max-line-length = 80

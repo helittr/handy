@@ -11,7 +11,7 @@ from fastapi import APIRouter, Path, Response, Query, status, WebSocket
 from fastapi.responses import JSONResponse
 from ..config.settings import SCRIPTS_JSON
 from ..core.scriptManager import ScriptManager
-from ..models.script import ExecuteParam, RootGroup
+from ..models.script import ExecuteParam, RootGroup, ManagerInfo
 import asyncio
 
 router = APIRouter(prefix="/adb", tags=["ADB"])
@@ -162,10 +162,9 @@ def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")])
         return {"code": 0, "message": "ok"}
     except ValueError as e:
         logging.error(f"exception: {e}")
-        return Response(
-            content={"code": 400, "message": str(e)},
+        return JSONResponse(
+            content={"code": 404, "message": str(e)},
             status_code=status.HTTP_404_NOT_FOUND,
-            media_type="application/json",
         )
 
 
@@ -178,10 +177,9 @@ def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")]):
         return {"code": 0, "message": "ok"}
     except ValueError as e:
         logging.info(f"exception: {e}")
-        return Response(
+        return JSONResponse(
             content={"code": 400, "message": str(e)},
             status_code=status.HTTP_400_BAD_REQUEST,
-            media_type="application/json",
         )
 
 @router.websocket("/ws")
@@ -226,3 +224,8 @@ async def websocket_tasks(websocket: WebSocket):
     finally:
         await websocket.close()
         logging.info("WebSocket connection closed")
+
+@router.get('/info', summary='获取脚本管理器信息', response_model=ManagerInfo)
+async def get_info():
+
+    return ManagerInfo(logpath=str(manager.logdir.absolute()))
