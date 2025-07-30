@@ -31,6 +31,9 @@ class ScriptManager:
         self.rootgroup = RootGroup.model_validate_json(
             self.source.read_text(encoding="utf-8"), context={"source": self.source}
         )
+        self.rootgroup = RootGroup.model_validate_json(
+            self.source.read_text(encoding="utf-8"), context={"source": self.source}
+        )
         self.task: t.Dict[IdType, BaseScript] = {}
         self.logdir: Path = LOG_DIR
         self.lastupdate: float = time.time()
@@ -110,7 +113,7 @@ class ScriptManager:
             raise ValueError(f"Cannot stop task in {task.get_status()} state")
 
         task.stop()
-        self.lastupdate = time.time()
+        # self.lastupdate = time.time()
         return True
 
     def reload(self):

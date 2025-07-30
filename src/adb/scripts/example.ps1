@@ -1,23 +1,29 @@
 ﻿[console]::OutputEncoding = New-Object System.Text.UTF8Encoding
 
-write-host "你好啊，世界！"
+# [Console]::TreatControlCAsInput = $true
 
-write-host "This is an example script for windows PowerShell."
-
-write-host "Parameters: $args"
-
-Get-ChildItem Env:
-
-write-host "Start Current Date and Time: $(Get-Date)"
-
-$cnt = 0
-
-while ($cnt -lt 100) {
-    write-host "Current Count: $cnt"
-    Start-Sleep -Milliseconds  100
-    $cnt++
+try {
+    # 主循环检测标志
+    while (-not $global:exitFlag) {
+        Write-Host "运行中... (按 Ctrl+C 退出)"
+        write-host "你好啊，世界！"
+        write-host "This is an example script for windows PowerShell."
+        write-host "Parameters: $args"
+        write-host "Start Current Date and Time: $(Get-Date)"
+        write-host "End Current Date and Time: $(Get-Date)"
+        write-host "你好啊，世界！"
+        Start-Sleep -Seconds 1
+    }
+}
+catch {
+    Write-Host "正在释放资源..."
+    if ($_.Exception -is [System.Management.Automation.PipelineStoppedException]) {
+        Write-Host "Exception"  $_.Exception
+    }
 }
 
-write-host "End Current Date and Time: $(Get-Date)"
 
-write-host "你好啊，世界！"
+# 此处执行清理操作（非事件处理器内）
+
+
+

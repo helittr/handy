@@ -4,6 +4,7 @@ import logging
 import os
 import time
 import subprocess
+import signal
 import typing as t
 from io import BufferedWriter
 from abc import abstractmethod
@@ -116,15 +117,12 @@ class BaseScript(ABC):
             raise ValueError(f"Cannot stop script in {self.status} state")
 
         if self.process:
+            self.process.send_signal(signal.CTRL_BREAK_EVENT)
             self.process.terminate()
-            try:
-                self.process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                self.process.kill()
 
-        self.status = ScriptStatus.TERMINATED
-        self.endtime = time.time()
-        if self.out:
-            self.out.close()
-        self.process = None
+        # self.status = ScriptStatus.TERMINATED
+        # self.endtime = time.time()
+        # if self.out:
+        #     self.out.close()
+        # self.process = None
         logging.info(f"Script '{self.info.name}' stopped by user request")
