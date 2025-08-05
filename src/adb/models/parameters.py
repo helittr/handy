@@ -42,13 +42,19 @@ class SelectParameter(BaseParameter):
     """选择参数模型"""
 
     type: Literal["select"]
-    default: Optional[str]
+    default: Optional[str] | list[str]
     options: list[SelectOption] = Field(default_factory=list)
+    multiple: bool = False
 
     def check_value(self, value: Any) -> bool:
         """验证选择参数值"""
         if self.required and value is None:
             return False
+        
+        if self.multiple:
+            if not isinstance(value, list):
+                return False
+            return all(option in [opt.value for opt in self.options] for option in value)
         return value in [option.value for option in self.options]
 
 

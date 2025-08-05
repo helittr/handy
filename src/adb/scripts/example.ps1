@@ -1,11 +1,9 @@
 ﻿[console]::OutputEncoding = New-Object System.Text.UTF8Encoding
 
-# [Console]::TreatControlCAsInput = $true
-
 try {
     # 主循环检测标志
     while (-not $global:exitFlag) {
-        Write-Host "运行中... (按 Ctrl+C 退出)"
+        Write-Host "运行中..."
         write-host "你好啊，世界！"
         write-host "This is an example script for windows PowerShell."
         write-host "Parameters: $args"
@@ -21,9 +19,5 @@ catch {
         Write-Host "Exception"  $_.Exception
     }
 }
-
-
-# 此处执行清理操作（非事件处理器内）
-
 
 

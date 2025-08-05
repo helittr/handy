@@ -86,7 +86,7 @@ class RootGroup(RootModel):
 class ExecuteParam(RootModel):
     """脚本执行参数模型"""
 
-    root: t.Dict[str, str | bool]
+    root: t.Dict[str, str | bool | t.List[str]]
 
 
 class ScriptStatus(Enum):

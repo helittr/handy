@@ -103,7 +103,7 @@ class ScriptManager:
             return True
         raise ValueError(f"Task '{tid}' not found.")
 
-    def stop_task(self, tid: IdType) -> bool:
+    def stop_task(self, tid: IdType, force:bool=False) -> bool:
         """停止正在运行的任务"""
         if tid not in self.task:
             raise ValueError(f"Task '{tid}' not found.")
@@ -112,8 +112,10 @@ class ScriptManager:
         if task.get_status() != ScriptStatus.RUNNING:
             raise ValueError(f"Cannot stop task in {task.get_status()} state")
 
-        task.stop()
-        # self.lastupdate = time.time()
+        if force:
+            task.force_stop()
+        else:
+            task.stop()
         return True
 
     def reload(self):

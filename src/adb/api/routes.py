@@ -9,6 +9,7 @@ import logging
 from typing import Annotated
 from fastapi import APIRouter, Path, Response, Query, status, WebSocket
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from ..config.settings import SCRIPTS_JSON
 from ..core.scriptManager import ScriptManager
 from ..models.script import ExecuteParam, RootGroup, ManagerInfo
@@ -167,13 +168,15 @@ def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")])
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
+class StopTaskRequest(BaseModel):
+    force: bool = False
 
 @router.post("/commands/tasks/{tid}/stop", summary="停止任务")
-def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")]):
+def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")], request: StopTaskRequest):
     """stop running task"""
     logging.info(f"stopping task: {tid}")
     try:
-        manager.stop_task(tid)
+        manager.stop_task(tid, force=request.force)
         return {"code": 0, "message": "ok"}
     except ValueError as e:
         logging.info(f"exception: {e}")

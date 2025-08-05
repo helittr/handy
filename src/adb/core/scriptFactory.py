@@ -62,6 +62,11 @@ class WinPowerShellScript(BaseScript):
             ):
                 cmdline.append(parameters.root[param.name].strip())
 
+            if isinstance(parameters.root[param.name], list):
+                for value in parameters.root[param.name]:
+                    if value.strip():
+                        cmdline.append(value.strip())
+
         return cmdline
 
 @ScriptFactory.register_script_type("powershell")

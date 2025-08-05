@@ -118,11 +118,17 @@ class BaseScript(ABC):
 
         if self.process:
             self.process.send_signal(signal.CTRL_BREAK_EVENT)
-            self.process.terminate()
 
-        # self.status = ScriptStatus.TERMINATED
-        # self.endtime = time.time()
-        # if self.out:
-        #     self.out.close()
-        # self.process = None
         logging.info(f"Script '{self.info.name}' stopped by user request")
+
+    def force_stop(self) -> None:
+        """强行停止正在运行的脚本"""
+        if self.status != ScriptStatus.RUNNING:
+            raise ValueError(f"Cannot stop script in {self.status} state")
+
+        if self.process:
+            self.process.terminate()
+            self.process.wait()
+
+        logging.info(f"Script '{self.info.name}' force stopped by user request")
+
