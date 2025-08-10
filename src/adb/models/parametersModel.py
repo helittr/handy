@@ -2,7 +2,6 @@
 
 from typing import Literal as L, List, Any
 from pydantic import BaseModel, Field
-from typing_extensions import Annotated
 
 
 class InputParameter(BaseModel):
@@ -32,13 +31,18 @@ class SelectParameter(BaseModel):
 
     name: str
     type: L["select"]
-    default: str
+    default: str | List[str] = Field(default="", description="默认选项")
+    multiple: bool = False
     label: str
     description: str
     required: bool = True
     options: List[SelectOption] = Field(default_factory=list)
 
-    def check_value(self, option: str) -> bool:
+    def check_value(self, option: str | List[str]) -> bool:
+
+        if self.multiple and isinstance(option, list):
+            return all(opt in [opt.value for opt in self.options] for opt in option)
+
         return option in [opt.value for opt in self.options]
 
 

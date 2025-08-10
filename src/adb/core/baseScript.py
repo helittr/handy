@@ -11,7 +11,7 @@ from abc import abstractmethod
 from pathlib import Path
 from abc import ABC
 
-from ..models.script import ScriptInfo, ExecuteParam, ScriptStatus
+from ..models.scriptModel import ScriptInfo, ExecuteParam, ScriptStatus
 
 
 class BaseScript(ABC):
@@ -29,7 +29,10 @@ class BaseScript(ABC):
         self.endtime: float | None = None
         self.cmdline: str = ""
 
-        if self.logfile.exists():
+        if self.info.newconsole:
+            self.logfile = None
+
+        if self.logfile and self.logfile.exists():
             raise FileExistsError(f"{self.logfile.absolute()} is already exist")
 
     def validate_parameters(self, parameters: ExecuteParam) -> None:
@@ -62,23 +65,28 @@ class BaseScript(ABC):
             raise SyntaxError(f"script status exception,{self.status}")
         self.starttime = time.time()
         self.status = ScriptStatus.RUNNING
-
-        self.out = self.logfile.open(mode="w")
         self.cmdline = str(self._get_cmdline(parameters))
-        logging.warning(f"execute: Command line: {self.cmdline}")
+        logging.info(f"execute: Command line: {self.cmdline}")
+
         try:
-
             env = os.environ.copy()
-            env['HANDY_SCRIPT_LOG_FILE'] = str(self.logfile.absolute())
-
-            self.process = subprocess.Popen(
-                self._get_cmdline(parameters),
-                stdout=self.out,
-                stderr=self.out,
-                stdin=subprocess.DEVNULL,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                env=env
-            )
+            if self.info.newconsole:
+                self.process = subprocess.Popen(
+                    self._get_cmdline(parameters),
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    env=env
+                )
+            else:
+                env['HANDY_SCRIPT_LOG_FILE'] = str(self.logfile.absolute())
+                self.out = self.logfile.open(mode="w")
+                self.process = subprocess.Popen(
+                    self._get_cmdline(parameters),
+                    stdout=self.out,
+                    stderr=self.out,
+                    stdin=subprocess.DEVNULL,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    env=env
+                )
         except Exception as e:
             logging.error(f"Failed to start script '{self.info.name}': {e}", stack_info=True)
             self.status = ScriptStatus.FINISH
@@ -92,13 +100,19 @@ class BaseScript(ABC):
             )
             self.status = ScriptStatus.FINISH
             self.endtime = time.time()
-            self.out.close()
+            if self.out:
+                self.out.flush()
+                self.out.close()
+                self.out = None
+
             self.process = None
         return self.status
 
     def get_log(self, pos: int, max_size: int) -> bytes:
         """获取脚本日志"""
         try:
+            if self.info.newconsole:
+                return b""
             with self.logfile.open("rb") as f:
                 try:
                     f.flush()

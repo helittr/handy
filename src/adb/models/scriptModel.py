@@ -7,7 +7,7 @@ from enum import Enum, auto
 from pydantic import BaseModel, RootModel, Field, AfterValidator
 from typing_extensions import Annotated
 
-from .parameters import InputParameter, SelectParameter, SwitchParameter
+from .parametersModel import InputParameter, SelectParameter, SwitchParameter
 
 
 class GlobalId:
@@ -44,6 +44,7 @@ class ScriptInfo(BaseModel):
     name: str
     type: t.Literal["winpowershell", "powershell"]
     path: Annotated[str, AfterValidator(validate_path)]
+    newconsole: bool = False
     label: str
     description: str
     parameters: t.List[
@@ -68,7 +69,6 @@ class GroupInfo(BaseModel):
         ]
     ]
 
-
 class RootGroup(RootModel):
     """根组模型"""
 
@@ -81,6 +81,15 @@ class RootGroup(RootModel):
     def __iter__(self):
         for item in self.root:
             yield item.id, item
+
+class ScriptPackage(BaseModel):
+    """脚本包模型"""
+
+    id: IdType
+    name: str
+    label: str
+    description: str
+    scripts: RootGroup
 
 
 class ExecuteParam(RootModel):

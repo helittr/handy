@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 
 from utiles.env import is_nuitka
 
-from adb.api.routes import router as adb_router
+from adb import router as adb_router
 from sysapi.router import router as sys_router
 
 app = FastAPI()

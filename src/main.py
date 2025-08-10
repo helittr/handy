@@ -28,4 +28,6 @@ if __name__ == "__main__":
         text_select=True
     )
 
+    logging.getLogger().setLevel(logging.INFO)
+
     webview.start(debug=False)

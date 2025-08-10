@@ -2,7 +2,7 @@
 
 import pytest
 from src.adb.core.baseScript import BaseScript
-from src.adb.models.script import ScriptInfo
+from adb.models.scriptModel import ScriptInfo
 
 
 class TestBaseScript:

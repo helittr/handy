@@ -1,6 +1,6 @@
 """ADB数据模型模块"""
 
-from .script import (
+from .scriptModel import (
     GlobalId,
     ScriptInfo,
     GroupInfo,

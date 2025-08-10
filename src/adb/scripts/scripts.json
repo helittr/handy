@@ -75,6 +75,73 @@
         "name": "script",
         "type": "winpowershell",
         "path": "./example.ps1",
+        "newconsole": true,
+        "label": "各种带默认值参数控制台",
+        "description": "This is an example script.",
+        "parameters": [
+          {
+            "name": "input",
+            "type": "input",
+            "default": "defaultvalue",
+            "label": "输入参数",
+            "description": "An input parameter."
+          },
+          {
+            "name": "--select",
+            "type": "select",
+            "default": "value1",
+            "label": "选择参数",
+            "description": "A select parameter.",
+            "options": [
+              {
+                "label": "选项1",
+                "value": "value1"
+              },
+              {
+                "label": "选项2",
+                "value": "value2"
+              },
+              {
+                "label": "选项3",
+                "value": "value3"
+              }
+            ]
+          },
+          {
+            "name": "--switch",
+            "type": "switch",
+            "default": false,
+            "label": "开关参数",
+            "description": "A switch parameter."
+          },
+          {
+            "name": "select",
+            "type": "select",
+            "default": ["value1", "value3"],
+            "label": "选择参数",
+            "multiple": true,
+            "description": "A select parameter.",
+            "options": [
+              {
+                "label": "选项1",
+                "value": "value1"
+              },
+              {
+                "label": "选项2",
+                "value": "value2"
+              },
+              {
+                "label": "选项3",
+                "value": "value3"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "script",
+        "type": "winpowershell",
+        "path": "./example.ps1",
         "label": "参数无默认值",
         "description": "This is an example script.",
         "parameters": [

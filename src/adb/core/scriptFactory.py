@@ -3,7 +3,7 @@
 import typing as t
 from ..utils.validator import validate_parameters
 from .baseScript import BaseScript
-from ..models.script import ScriptInfo, ExecuteParam
+from ..models.scriptModel import ScriptInfo, ExecuteParam
 
 
 class ScriptFactory:

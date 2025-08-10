@@ -6,18 +6,23 @@ Includes WebSocket support for real-time task updates.
 """
 
 import logging
-from typing import Annotated
-from fastapi import APIRouter, Path, Response, Query, status, WebSocket
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from ..config.settings import SCRIPTS_JSON
-from ..core.scriptManager import ScriptManager
-from ..models.script import ExecuteParam, RootGroup, ManagerInfo
 import asyncio
+import traceback
+
+from typing import Annotated
+from fastapi import APIRouter, Path, Response, Query, WebSocketDisconnect, status, WebSocket
+from fastapi.responses import JSONResponse
+from fastapi.websockets import WebSocketState
+from pydantic import BaseModel
+from settings import get_script_manager_settings
+from .core.scriptManager import ScriptManager
+from .models.scriptModel import ExecuteParam, ScriptPackage, ManagerInfo
+
 
 router = APIRouter(prefix="/adb", tags=["ADB"])
 
-manager = ScriptManager(str(SCRIPTS_JSON))
+smSettings = get_script_manager_settings()
+manager = ScriptManager(smSettings.scriptPath, smSettings.logPath)
 
 def generate_task_list() -> dict:
     """Generate standardized task list structure"""
@@ -50,7 +55,7 @@ def generate_task_list() -> dict:
 
 def handle_error_response(e: Exception, status_code: int = 400) -> JSONResponse:
     """Standard error response handler"""
-    logging.error(f"API error: {str(e)}")
+    logging.error(f"API error: {''.join(traceback.format_exception(e))}")
     return JSONResponse(
         content={"code": status_code, "status": "error", "message": str(e)},
         status_code=status_code,
@@ -66,7 +71,7 @@ def get_commands():
         dict: 包含所有命令的分组结构
     """
     try:
-        return manager.rootgroup
+        return manager.scriptPackage.scripts.model_dump(mode="json", exclude_none=True)
     except Exception as e:
         return handle_error_response(e)
 
@@ -79,7 +84,7 @@ def get_commands_schema():
         dict: 包含所有命令的Schema信息
     """
     try:
-        return RootGroup.model_json_schema()
+        return ScriptPackage.model_json_schema()
     except Exception as e:
         return handle_error_response(e)
 
@@ -200,33 +205,31 @@ async def websocket_tasks(websocket: WebSocket):
     await websocket.accept()
     logging.info("WebSocket connection established")
     
-    try:
-        while True:
-            try:
-                # Send ping to check connection
-                await websocket.send_text("ping")
-                pong = await asyncio.wait_for(websocket.receive_text(), timeout=1)
-                if pong != "pong":
-                    raise ConnectionError("Invalid pong response")
-                    break     
-                    
-                # Send task updates
-                await websocket.send_json(generate_task_list())
-                await asyncio.sleep(1)
-            except asyncio.TimeoutError:
-                logging.warning("WebSocket timeout, reconnecting...")
-                await websocket.close()
-                break
-            except ConnectionError:
-                logging.warning("WebSocket connection error, reconnecting...")
-                await websocket.close()
-                break
+
+    while True:
+        try:
+            # Send ping to check connection
+            await websocket.send_text("ping")
+            pong = await asyncio.wait_for(websocket.receive_text(), timeout=1)
+            if pong != "pong":
+                raise ConnectionError("Invalid pong response")
+                break     
                 
-    except Exception as e:
-        logging.error(f"WebSocket error: {e}")
-    finally:
-        await websocket.close()
+            # Send task updates
+            await websocket.send_json(generate_task_list())
+            await asyncio.sleep(1)
+        except WebSocketDisconnect:
+            logging.info("WebSocket disconnected")
+            break
+        except Exception as e:
+            logging.info(f"WebSocket error: {''.join(traceback.format_exception(e))}")
+            if websocket.application_state == WebSocketState.CONNECTED:
+                await websocket.close()
+            break
+
+    if websocket.application_state != WebSocketState.CONNECTED:
         logging.info("WebSocket connection closed")
+
 
 @router.get('/info', summary='获取脚本管理器信息', response_model=ManagerInfo)
 async def get_info():

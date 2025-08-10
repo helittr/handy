@@ -1,8 +1,6 @@
 """验证工具模块"""
 
 from pathlib import Path
-from typing import Any
-from ..config import settings
 
 
 def validate_path(value: str, source: Path) -> str:

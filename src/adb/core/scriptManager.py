@@ -5,15 +5,13 @@ import time
 import typing as t
 from pathlib import Path
 
-from ..config.settings import LOG_DIR
-from ..utils.logger import get_log_path
-from ..models.script import (
-    RootGroup,
+from ..models.scriptModel import (
     IdType,
     ScriptInfo,
     GroupInfo,
     ExecuteParam,
     ScriptStatus,
+    ScriptPackage,
 )
 from .scriptFactory import ScriptFactory
 from .baseScript import BaseScript
@@ -22,20 +20,20 @@ from .baseScript import BaseScript
 class ScriptManager:
     """脚本管理器类"""
 
-    def __init__(self, source: str):
+    def __init__(self, source: str, logDir: str):
         if isinstance(source, str):
             self.source = Path(source)
         else:
             raise TypeError("Source must be a string or a list of strings.")
 
-        self.rootgroup = RootGroup.model_validate_json(
+        self.scriptPackage = ScriptPackage.model_validate_json(
             self.source.read_text(encoding="utf-8"), context={"source": self.source}
         )
-        self.rootgroup = RootGroup.model_validate_json(
+        self.scriptPackage = ScriptPackage.model_validate_json(
             self.source.read_text(encoding="utf-8"), context={"source": self.source}
         )
         self.task: t.Dict[IdType, BaseScript] = {}
-        self.logdir: Path = LOG_DIR
+        self.logdir: Path = Path(logDir)
         self.lastupdate: float = time.time()
 
     def find_script_info(self, sid: IdType) -> t.Optional[ScriptInfo]:
@@ -51,7 +49,7 @@ class ScriptManager:
                         return found_script
             return None
 
-        for ssid, item in self.rootgroup:
+        for ssid, item in self.scriptPackage.scripts:
             if isinstance(item, ScriptInfo) and ssid == sid:
                 return item
             elif isinstance(item, GroupInfo):
@@ -60,14 +58,19 @@ class ScriptManager:
                     return found_script
         return None
 
+    def generate_log_file(self, script_id: int, script_name: str) -> Path:
+        """获取日志文件路径"""
+        timestamp = time.strftime("%Y%m%d-%H%M%S", time.localtime())
+        return self.logdir / f"{timestamp}-{script_name}.log"
+
     def execute_script(self, sid: IdType, parameters: ExecuteParam) -> IdType:
         """执行脚本"""
+
         scriptinfo = self.find_script_info(sid)
+
         if scriptinfo:
-            task = ScriptFactory.create_script(
-                scriptinfo,
-                get_log_path(sid, scriptinfo.name),
-            )
+            logPath = self.generate_log_file(sid, scriptinfo.name)
+            task = ScriptFactory.create_script(scriptinfo, logPath)
             self.task[task.taskid] = task
             task.execute(parameters)
             return task.taskid
@@ -103,7 +106,7 @@ class ScriptManager:
             return True
         raise ValueError(f"Task '{tid}' not found.")
 
-    def stop_task(self, tid: IdType, force:bool=False) -> bool:
+    def stop_task(self, tid: IdType, force: bool = False) -> bool:
         """停止正在运行的任务"""
         if tid not in self.task:
             raise ValueError(f"Task '{tid}' not found.")
@@ -120,7 +123,7 @@ class ScriptManager:
 
     def reload(self):
         """重新加载脚本"""
-        self.rootgroup = RootGroup.model_validate_json(
+        self.scriptPackage = ScriptPackage.model_validate_json(
             self.source.read_text(encoding="utf-8"), context={"source": self.source}
         )
         self.task.clear()
