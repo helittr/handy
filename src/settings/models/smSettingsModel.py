@@ -1,5 +1,5 @@
 from pathlib import Path
-# from typing import Literal
+import os
 from pydantic import BaseModel, Field
 
 
@@ -13,7 +13,7 @@ USER_SCRIPTS_JSON = Path.home() / ".handy/scripts/scripts_package.json"
 SCRIPTS_JSON = (
     USER_SCRIPTS_JSON
     if USER_SCRIPTS_JSON.exists()
-    else Path(__file__).parent.parent.joinpath("scripts/scripts_package.json")
+    else Path(__file__).parent.parent.parent.joinpath("adb/scripts/scripts_package.json")
 )
 
 class ScriptManagerSettings(BaseModel):

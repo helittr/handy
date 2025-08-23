@@ -9,6 +9,7 @@ class GlobalSettings(BaseModel):
     """全局设置模型"""
 
     theme: Literal["dark", "light"] = Field(default="dark", description="主题")
+    collapsed: bool = Field(default=False, description="侧边栏折叠状态")
     lastUpdate: float = Field(default_factory=lambda: datetime.now().timestamp())
 
     scriptManager: ScriptManagerSettings = Field(default_factory=ScriptManagerSettings)
