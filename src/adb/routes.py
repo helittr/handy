@@ -9,22 +9,33 @@ import logging
 import asyncio
 import traceback
 
-from typing import Annotated
-from fastapi import APIRouter, Path, Response, Query, WebSocketDisconnect, status, WebSocket
+from typing import Annotated, Optional
+from fastapi import APIRouter, Path, Response, Query, WebSocketDisconnect, status, WebSocket, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.websockets import WebSocketState
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
 from settings import get_script_manager_settings
 from .core.scriptManager import ScriptManager
 from .models.scriptModel import ExecuteParam, ScriptPackage, ManagerInfo
 
-
-router = APIRouter(prefix="/adb", tags=["ADB"])
-
 smSettings = get_script_manager_settings()
-manager = ScriptManager(smSettings.scriptPath, smSettings.logPath)
+manager: Optional[ScriptManager] = None
 
-def generate_task_list() -> dict:
+async def dependency_manager():
+    global manager
+    logging.info(f"dependency_manager called")
+    if not manager:
+        try:
+            manager = ScriptManager(smSettings.scriptPath, smSettings.logPath)
+        except Exception as e:
+            logging.error(f"Failed to initialize ScriptManager: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    return manager
+
+router = APIRouter(prefix="/adb", tags=["ADB"], dependencies=[Depends(dependency_manager)])
+
+def generate_task_list(mgr:ScriptManager) -> dict:
     """Generate standardized task list structure"""
     task = {
         "lastUpdate": 0,
@@ -37,18 +48,18 @@ def generate_task_list() -> dict:
                 "cmdline": t.cmdline,
                 "logfile": str(t.logfile),
             }
-            for _, t in manager.task.items()
+            for _, t in mgr.task.items()
         ],
     }
 
-    for _, t in manager.task.items():
+    for _, t in mgr.task.items():
         if t.starttime and task["lastUpdate"] < t.starttime:
             task["lastUpdate"] = t.starttime
         if t.endtime and task["lastUpdate"] < t.endtime:
             task["lastUpdate"] = t.endtime
 
-    if task["lastUpdate"] < manager.lastupdate:
-        task["lastUpdate"] = manager.lastupdate
+    if task["lastUpdate"] < mgr.lastupdate:
+        task["lastUpdate"] = mgr.lastupdate
 
     logging.debug(f"Generated task list: {task}")
     return task
@@ -61,9 +72,8 @@ def handle_error_response(e: Exception, status_code: int = 400) -> JSONResponse:
         status_code=status_code,
     )
 
-
-@router.get("/commands", summary="获取命令列表")
-def get_commands():
+@router.get("/commands",summary="获取命令列表")
+def get_commands(mgr: ScriptManager = Depends(dependency_manager)):
     """
     获取所有可用的命令列表
 
@@ -71,7 +81,7 @@ def get_commands():
         dict: 包含所有命令的分组结构
     """
     try:
-        return manager.scriptPackage.scripts.model_dump(mode="json", exclude_none=True)
+        return mgr.scriptPackage.scripts.model_dump(mode="json", exclude_none=True)
     except Exception as e:
         return handle_error_response(e)
 
@@ -89,7 +99,7 @@ def get_commands_schema():
         return handle_error_response(e)
 
 @router.post("/commands/reload", summary="重新加载命令")
-def reload_commands():
+def reload_commands(mgr: ScriptManager = Depends(dependency_manager)):
     """
     重新加载命令列表
 
@@ -97,7 +107,7 @@ def reload_commands():
         dict: 包含重新加载状态的响应
     """
     try:
-        manager.reload()
+        mgr.reload()
         return {"status": "ok", "code": 0, "message": "Commands reloaded successfully"}
     except Exception as e:
         return handle_error_response(e)
@@ -106,6 +116,7 @@ def reload_commands():
 def exe_command(
     sid: Annotated[int, Path(title="命令ID", ge=1)],
     params: ExecuteParam,
+    mgr: ScriptManager = Depends(dependency_manager)
 ):
     """
     执行指定的ADB命令
@@ -119,16 +130,16 @@ def exe_command(
     """
     logging.info(f"Executing command {sid} with params: {params}")
     try:
-        tid = manager.execute_script(sid, params)
+        tid = mgr.execute_script(sid, params)
         return {"status": "ok", "code": 0, "data": {"taskId": tid}}
     except Exception as e:
-        return handle_error_response(e)
+        raise HTTPException(status_code=500, detail= ''.join(traceback.format_exception(e)))
 
 
 @router.get("/commands/{sid}/status", summary="获取指定命令状态")
-def get_status(sid: Annotated[int, Path(title="The ID of the command to get")]):
+def get_status(sid: Annotated[int, Path(title="The ID of the command to get")], mgr: ScriptManager = Depends(dependency_manager)):
     """get command status"""
-    st = manager.get_script_status(sid)
+    st = mgr.get_script_status(sid)
     return {"id": sid, "status": st}
 
 
@@ -137,10 +148,11 @@ def get_log(
     tid: Annotated[int, Path(title="The ID of the command to get")],
     pos: int = Query(default=0, ge=0, title="The position of the log to get"),
     size: int = Query(default=-1, title="The size of the log to get"),
+    mgr: ScriptManager = Depends(dependency_manager)
 ):
     """get command log"""
     try:
-        log = manager.get_script_log(tid, pos, size)
+        log = mgr.get_script_log(tid, pos, size)
         # logging.debug(f"response log: {log.decode('gb2312', errors='ignore')}")
         return Response(content=log, media_type="application/octet-stream")
     except ValueError as e:
@@ -149,22 +161,22 @@ def get_log(
 
 
 @router.get("/commands/tasks", summary="获取任务列表")
-def get_tasks():
+def get_tasks(mgr: ScriptManager = Depends(dependency_manager)):
     """
     获取当前所有任务的状态列表
     
     Returns:
         dict: 包含所有任务信息和最后更新时间
     """
-    return generate_task_list()
+    return generate_task_list(mgr)
 
 
 @router.delete("/commands/tasks/{tid}/delete", summary="删除任务")
-def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")]):
+def del_task(tid: Annotated[int, Path(title="The ID of the command to delete")],mgr: ScriptManager = Depends(dependency_manager)):
     """delete task"""
     logging.info(f"delete task: {tid}")
     try:
-        manager.del_task(tid)
+        mgr.del_task(tid)
         return {"code": 0, "message": "ok"}
     except ValueError as e:
         logging.error(f"exception: {e}")
@@ -177,11 +189,11 @@ class StopTaskRequest(BaseModel):
     force: bool = False
 
 @router.post("/commands/tasks/{tid}/stop", summary="停止任务")
-def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")], request: StopTaskRequest):
+def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")], request: StopTaskRequest, mgr: ScriptManager = Depends(dependency_manager)):
     """stop running task"""
     logging.info(f"stopping task: {tid}")
     try:
-        manager.stop_task(tid, force=request.force)
+        mgr.stop_task(tid, force=request.force)
         return {"code": 0, "message": "ok"}
     except ValueError as e:
         logging.info(f"exception: {e}")
@@ -191,7 +203,7 @@ def stop_task(tid: Annotated[int, Path(title="The ID of the command to stop")], 
         )
 
 @router.websocket("/ws")
-async def websocket_tasks(websocket: WebSocket):
+async def websocket_tasks(websocket: WebSocket, mgr: ScriptManager = Depends(dependency_manager)):
     """
     WebSocket实时获取任务状态更新
     
@@ -216,7 +228,7 @@ async def websocket_tasks(websocket: WebSocket):
                 break     
                 
             # Send task updates
-            await websocket.send_json(generate_task_list())
+            await websocket.send_json(generate_task_list(mgr))
             await asyncio.sleep(1)
         except WebSocketDisconnect:
             logging.info("WebSocket disconnected")
@@ -232,6 +244,6 @@ async def websocket_tasks(websocket: WebSocket):
 
 
 @router.get('/info', summary='获取脚本管理器信息', response_model=ManagerInfo)
-async def get_info():
+async def get_info(mgr: ScriptManager = Depends(dependency_manager)):
 
-    return ManagerInfo(logpath=str(manager.logdir.absolute()))
+    return ManagerInfo(logpath=str(mgr.logdir.absolute()))

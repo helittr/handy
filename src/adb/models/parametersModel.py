@@ -11,6 +11,7 @@ class InputParameter(BaseModel):
     type: L["input"]
     default: str
     label: str
+    required: bool = False
     description: str
 
     def check_value(self, value: str) -> bool:

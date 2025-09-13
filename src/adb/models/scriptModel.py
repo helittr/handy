@@ -22,8 +22,11 @@ class GlobalId:
         return current_id
 
 
-def validate_path(value: str, info: t.Any) -> str:
+def validate_path(value: str|None, info: t.Any) -> str|None:
     """验证并解析路径"""
+    if value is None:
+        return value
+
     context = info.context
     if not context or "source" not in context:
         raise ValueError("Source context is required for path validation.")
@@ -42,7 +45,7 @@ class ScriptInfo(BaseModel):
 
     id: IdType = Field(default_factory=GlobalId.get_next_id)
     name: str
-    type: t.Literal["winpowershell", "powershell"]
+    type: t.Literal["winpowershell", "powershell", "python"]
     path: Annotated[str, AfterValidator(validate_path)]
     newconsole: bool = False
     label: str
@@ -78,9 +81,9 @@ class RootGroup(RootModel):
         ]
     ]
 
-    def __iter__(self):
+    def iter(self) -> t.Iterator[t.Tuple[IdType, t.Union[GroupInfo, ScriptInfo]]]:
         for item in self.root:
-            yield item.id, item
+            yield (item.id, item)
 
 class ScriptPackage(BaseModel):
     """脚本包模型"""
@@ -89,6 +92,8 @@ class ScriptPackage(BaseModel):
     name: str
     label: str
     description: str
+    install: str
+    python: Annotated[str|None, AfterValidator(validate_path)]
     scripts: RootGroup
 
 

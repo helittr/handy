@@ -20,5 +20,5 @@ class ScriptManagerSettings(BaseModel):
     """脚本管理器设置模型"""
 
     scriptPath: str = Field(default=str(SCRIPTS_JSON), description="脚本存储路径")
-    logPath: str = Field(default=LOG_DIR, description="日志存储路径")
+    logPath: str = Field(default=str(LOG_DIR), description="日志存储路径")
     scriptPackages: list[Path] = Field(default=[Path(SCRIPTS_JSON)], description="脚本包列表")

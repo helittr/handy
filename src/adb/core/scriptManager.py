@@ -29,12 +29,12 @@ class ScriptManager:
         self.scriptPackage = ScriptPackage.model_validate_json(
             self.source.read_text(encoding="utf-8"), context={"source": self.source}
         )
-        self.scriptPackage = ScriptPackage.model_validate_json(
-            self.source.read_text(encoding="utf-8"), context={"source": self.source}
-        )
+
         self.task: t.Dict[IdType, BaseScript] = {}
         self.logdir: Path = Path(logDir)
         self.lastupdate: float = time.time()
+
+        ScriptFactory.set_executable_path("python", self.scriptPackage.python)
 
     def find_script_info(self, sid: IdType) -> t.Optional[ScriptInfo]:
         """查找脚本信息"""
@@ -49,7 +49,7 @@ class ScriptManager:
                         return found_script
             return None
 
-        for ssid, item in self.scriptPackage.scripts:
+        for ssid, item in self.scriptPackage.scripts.iter():
             if isinstance(item, ScriptInfo) and ssid == sid:
                 return item
             elif isinstance(item, GroupInfo):
@@ -70,7 +70,7 @@ class ScriptManager:
 
         if scriptinfo:
             logPath = self.generate_log_file(sid, scriptinfo.name)
-            task = ScriptFactory.create_script(scriptinfo, logPath)
+            task = ScriptFactory.create_script(scriptinfo, str(logPath))
             self.task[task.taskid] = task
             task.execute(parameters)
             return task.taskid

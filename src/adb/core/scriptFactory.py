@@ -10,6 +10,15 @@ class ScriptFactory:
     """脚本工厂类"""
 
     _registry: t.ClassVar[t.Dict[str, t.Type[BaseScript]]] = {}
+    _exe_path: t.Dict[str, str] = {}
+
+    @classmethod
+    def set_executable_path(cls, script_type: str, path: str) -> None:
+        """设置可执行文件路径"""
+        if script_type in cls._registry.keys():
+            cls._exe_path[script_type] = path
+        else:
+            raise ValueError(f"Unsupported script type: {script_type}")
 
     @classmethod
     def register_script_type(cls, script_type: str):
@@ -28,7 +37,7 @@ class ScriptFactory:
             raise ValueError("Script groups cannot be instantiated directly")
 
         if script_class := cls._registry.get(script_info.type):
-            return script_class(script_info, logfile)
+            return script_class(script_info, logfile, cls._exe_path.get(script_info.type))
 
         raise ValueError(f"Unsupported script type: {script_info.type}")
 
@@ -50,22 +59,25 @@ class WinPowerShellScript(BaseScript):
         ]
 
         for param in self.info.parameters:
-            if param.name.startswith("-"):
-                if isinstance(parameters.root[param.name], bool):
-                    if parameters.root[param.name]:
-                        cmdline.append(param.name)
-                elif parameters.root[param.name].strip() != '':
-                    cmdline.append(param.name)
+            name = param.name
+            value = parameters.root[name]
+            if name.startswith("-"):
+                if isinstance(value, bool):
+                    if value:
+                        cmdline.append(name)
+                elif isinstance(value, str):
+                    if value.strip() != '':
+                        cmdline.append(name)
 
-            if isinstance(parameters.root[param.name], str) and len(
-                parameters.root[param.name].strip()
+            if isinstance(value, str) and len(
+                value.strip()
             ):
-                cmdline.append(parameters.root[param.name].strip())
+                cmdline.append(value.strip())
 
-            if isinstance(parameters.root[param.name], list):
-                for value in parameters.root[param.name]:
-                    if value.strip():
-                        cmdline.append(value.strip())
+            if isinstance(value, list):
+                for v in value:
+                    if v.strip():
+                        cmdline.append(v.strip())
 
         return cmdline
 
@@ -86,16 +98,50 @@ class PowerShellScript(BaseScript):
         ]
 
         for param in self.info.parameters:
-            if param.name.startswith("-"):
-                if isinstance(parameters.root[param.name], bool):
-                    if parameters.root[param.name]:
-                        cmdline.append(param.name)
-                elif parameters.root[param.name].strip() != '':
-                    cmdline.append(param.name)
+            name = param.name
+            value = parameters.root[name]
 
-            if isinstance(parameters.root[param.name], str) and len(
-                parameters.root[param.name].strip()
+            if name.startswith("-"):
+                if isinstance(value, bool):
+                    if value:
+                        cmdline.append(name)
+                elif isinstance(value, str):
+                    if value.strip() != '':
+                        cmdline.append(name)
+
+            if isinstance(value, str) and len(
+                value.strip()
             ):
-                cmdline.append(parameters.root[param.name].strip())
+                cmdline.append(value.strip())
+
+        return cmdline
+
+@ScriptFactory.register_script_type("python")
+class PythonScript(BaseScript):
+    """Python脚本实现类"""
+
+    def _get_cmdline(self, parameters: ExecuteParam):
+        validate_parameters(parameters.model_dump(), self.info)
+        cmdline = [
+            self.exec if self.exec else "python",
+            self.info.path,
+        ]
+
+        for param in self.info.parameters:
+            name = param.name
+            value = parameters.root[name]
+
+            if name.startswith("-"):
+                if isinstance(value, bool):
+                    if value:
+                        cmdline.append(name)
+                elif isinstance(value, str):
+                    if value.strip() != '':
+                        cmdline.append(name)
+
+            if isinstance(value, str) and len(
+                value.strip()
+            ):
+                cmdline.append(value.strip())
 
         return cmdline

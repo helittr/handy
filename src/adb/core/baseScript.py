@@ -17,17 +17,18 @@ from ..models.scriptModel import ScriptInfo, ExecuteParam, ScriptStatus
 class BaseScript(ABC):
     """脚本基类"""
 
-    def __init__(self, script_info: ScriptInfo, logfile: str):
+    def __init__(self, script_info: ScriptInfo, logfile: str, exec:str|None=None):
         self.taskid: int = time.time_ns() // 1000
         self.info: ScriptInfo = script_info
         self.status: ScriptStatus = ScriptStatus.PRE
-        self.logfile: Path = Path(logfile)
+        self.logfile: Path|None = Path(logfile)
         self.out: t.Optional[BufferedWriter] = None
         self.process: t.Optional[subprocess.Popen] = None
         self.createtime: float = time.time()
         self.starttime: float | None = None
         self.endtime: float | None = None
         self.cmdline: str = ""
+        self.exec = exec
 
         if self.info.newconsole:
             self.logfile = None
@@ -37,14 +38,14 @@ class BaseScript(ABC):
 
     def validate_parameters(self, parameters: ExecuteParam) -> None:
         """验证执行参数"""
-        parameters = parameters.model_dump()
+        paramDict:dict= parameters.model_dump()
         for param in self.info.parameters:
-            if param.name not in parameters.keys() and param.required:
+            if param.name not in paramDict.keys() and param.required:
                 raise ValueError(f"Missing required parameter: {param.name}")
 
-            if not param.check_value(parameters[param.name]):
+            if not param.check_value(paramDict[param.name]):
                 raise ValueError(
-                    f"Invalid value for parameter '{param.name}': {parameters[param.name]}"
+                    f"Invalid value for parameter '{param.name}': {paramDict[param.name]}"
                 )
 
     @abstractmethod
@@ -77,8 +78,10 @@ class BaseScript(ABC):
                     env=env
                 )
             else:
-                env['HANDY_SCRIPT_LOG_FILE'] = str(self.logfile.absolute())
-                self.out = self.logfile.open(mode="w")
+                if self.logfile is not None:
+                    env['HANDY_SCRIPT_LOG_FILE'] = str(self.logfile.absolute())
+                    self.out = self.logfile.open(mode="wb")
+
                 self.process = subprocess.Popen(
                     self._get_cmdline(parameters),
                     stdout=self.out,
@@ -91,6 +94,7 @@ class BaseScript(ABC):
             logging.error(f"Failed to start script '{self.info.name}': {e}", stack_info=True)
             self.status = ScriptStatus.FINISH
             self.endtime = time.time()
+            raise e
 
     def get_status(self) -> ScriptStatus:
         """获取脚本状态"""
@@ -111,8 +115,10 @@ class BaseScript(ABC):
     def get_log(self, pos: int, max_size: int) -> bytes:
         """获取脚本日志"""
         try:
-            if self.info.newconsole:
+            if self.info.newconsole or self.logfile is None:
                 return b""
+            
+            
             with self.logfile.open("rb") as f:
                 try:
                     f.flush()
@@ -122,7 +128,7 @@ class BaseScript(ABC):
                     return b""
                 return f.read(max_size)
         except FileNotFoundError:
-            logging.error(f"Log file not found: {self.logfile.absolute()}")
+            logging.error(f"Log file not found: {self.logfile.absolute() if  self.logfile else ''}")
             return b""
 
     def stop(self) -> None:

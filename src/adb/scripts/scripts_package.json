@@ -3,6 +3,8 @@
   "name": "scripts_package.json",
   "label": "示例脚本包",
   "description": "这是一个示例脚本包，包含多个脚本和参数示例。",
+  "python": null,
+  "install" : "install.ps1",
   "scripts": [
     {
       "name": "example",
@@ -211,6 +213,55 @@
             },
             {
               "name": "参数2",
+              "type": "select",
+              "default": "",
+              "label": "参数2",
+              "description": "A select parameter.",
+              "options": [
+                {
+                  "label": "选项1",
+                  "value": "value1"
+                },
+                {
+                  "label": "选项2",
+                  "value": "value2"
+                },
+                {
+                  "label": "选项3",
+                  "value": "value3"
+                },
+                {
+                  "label": "选项4",
+                  "value": "value4"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "python分组",
+      "type": "scriptgroup",
+      "label": "python分组",
+      "description": "This is an example python script group.",
+      "children": [
+        {
+          "name": "示例1",
+          "type": "python",
+          "path": "./example.py",
+          "label": "示例脚本",
+          "description": "This is an example script.",
+          "parameters": [
+            {
+              "name": "--input",
+              "type": "input",
+              "default": "defualtvalue",
+              "label": "参数1",
+              "description": "An input parameter."
+            },
+            {
+              "name": "--select",
               "type": "select",
               "default": "",
               "label": "参数2",
