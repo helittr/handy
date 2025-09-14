@@ -22,17 +22,6 @@ max-line-length = 80
 requires = ["setuptools","nuitka", "toml"]
 build-backend = "nuitka.distutils.Build"
 
-[tool.nuitka]
-
-standalone = true
-show-progress = true
-mingw64 = true
-jobs = 8
-include-data-file = [
-    "../handy/dist/=static/",
-    "src/adb/scripts=adb/scripts/",
-    "README.md=.",
-]
-output-dir = "dist"
-windows-disable-console = true
-main = "src/main.py"
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
