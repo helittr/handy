@@ -3,7 +3,7 @@ from app import app
 from threading import Thread
 import webview
 import logging
-
+from  utiles.env import is_nuitka
 class UvicornThread(Thread):
     def run(self):
         config = uvicorn.Config(app, port=8001, log_level="info", reload=True)
@@ -30,4 +30,4 @@ if __name__ == "__main__":
 
     logging.getLogger().setLevel(logging.INFO)
 
-    webview.start(debug=False)
+    webview.start(debug = not is_nuitka())
