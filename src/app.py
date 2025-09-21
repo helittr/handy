@@ -20,7 +20,7 @@ app.include_router(settings_router)
 if is_nuitka():
     static_dir = Path(__file__).parent.joinpath("static")
 else:
-    static_dir = Path(__file__).parent.parent.joinpath("../handy/dist")
+    static_dir = Path(__file__).parent.parent.joinpath("../handyUi/dist")
 
 print(f"Static files directory: {static_dir}")
 if static_dir.exists():
@@ -40,4 +40,8 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return RedirectResponse(url="static/index.html")
+    return RedirectResponse(url="/static/index.html")
+
+@app.get("/docs/")
+def root():
+    return RedirectResponse(url="/static/docs/index.html")
