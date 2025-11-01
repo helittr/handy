@@ -1,0 +1,35 @@
+
+$PYTHON_VERSION = "3.12.9"
+
+
+$outDir = "$PSScriptRoot\out"
+$handyExe = "$PSScriptRoot\src-tauri\target\release\handy.exe"
+$handyServe = "$PSScriptRoot\src-python\dist\handyapi-0.1.0-py3-none-any.whl"
+
+$python = "python-$PYTHON_VERSION-embed-amd64.zip"
+$embedPythonUrl = "https://mirrors.huaweicloud.com/python/$PYTHON_VERSION/$python"
+
+if ( -not $(Test-Path -Path  $outDir -PathType Container) ) {
+    Write-Host "create output directory: $outDir"
+    New-Item -Path $outDir -ItemType Directory > $null
+    New-Item -Path $outDir/handy -ItemType Directory > $null
+}
+else {
+    Write-Host "output directory: $outDir"
+}
+
+if ( -not $(Test-Path -Path "$outDir/$python" -PathType Leaf) ) {
+    Write-Host "Download $python from $embedPython"
+    Invoke-WebRequest -Uri $embedPythonUrl -OutFile "$outDir/$python"
+
+    # $outPython = Get-ChildItem "$outDir/$python"
+    Write-Host "unzip $outDir/$python"
+    Expand-Archive -Path "$outDir/$python" -DestinationPath "$outDir/handy/python"
+
+    # Write-Host "delete $outDir/$python"
+}
+
+uv pip install --python-version $PYTHON_VERSION --python-platform windows --prefix "$outDir/handy/python" $handyServe -i "https://mirrors.aliyun.com/pypi/simple/"
+
+Copy-Item -Path $handyExe -Destination $outDir/handy
+

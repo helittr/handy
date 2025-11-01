@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      el: "#app",
+      themeable: {
+        readyTransition: true, // default
+        responsiveTables: true  // default
+      },
+      copyCode: {
+        buttonText: 'Copy to clipboard',
+        errorText: 'Error',
+        successText: 'Copied',
+      },
+      darklightTheme: {
+        dark: {
+          accent: '#42b983',
+          codeBackgroundColor: "rgb(24, 24, 30)",
+          background: "rgb(16, 16, 20)"
+        }
+      }
+    }
+  </script>
+  <!-- Docsify v4 -->
+  <script type="module" src="main.ts"></script>
+</body>
+<style>
+
+</style>
+
+</html>
