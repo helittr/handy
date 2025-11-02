@@ -23,11 +23,14 @@ fn start_server() -> Child {
 
     let mut cmd = Command::new(python.clone().into_os_string());
     if is_embed {
-        cmd.env("PYTHONPATH", python.parent().unwrap().join("Lib"));
+        cmd.env(
+            "PYTHONPATH",
+            python.parent().unwrap().join("Lib/site-packages"),
+        );
     };
 
     let handle = cmd
-        .args(["-m", "handyapi.main"])
+        .args(["-m", "handyapi"])
         .spawn()
         .expect("failed to execute process");
 
