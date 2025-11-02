@@ -1,14 +1,14 @@
 <template>
-  <n-config-provider class="layout" :theme="globaleStateStore.currentTheme">
+  <n-config-provider class="h-full" :theme="globaleStateStore.currentTheme">
     <n-message-provider>
-      <n-layout class="layout" has-sider>
+      <n-layout class="h-full" has-sider>
         <n-layout-sider :width="180" :collapsed-width="64" show-trigger="arrow-circle"
           v-model:collapsed="globaleStateStore.isCollapse" collapse-mode="width" bordered>
           <sideBar />
         </n-layout-sider>
 
         <n-layout content-class="main-layout">
-          <n-layout-header class="main-header" bordered>
+          <n-layout-header class="h-[39px]" bordered>
             <headerContent />
           </n-layout-header>
 
@@ -37,17 +37,9 @@ const globaleStateStore = useGlobalStateStore()
 </script>
 
 <style scoped>
-.layout {
-  height: 100%;
-}
-
 :deep(.main-layout) {
   display: flex;
   flex-direction: column;
-}
-
-.main-header {
-  height: 39px;
 }
 
 :deep(.main-content) {
@@ -57,7 +49,7 @@ const globaleStateStore = useGlobalStateStore()
 
 .v-enter-active,
 .v-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease-in;
 }
 
 .v-enter-from,

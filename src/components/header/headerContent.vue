@@ -1,11 +1,18 @@
 <template>
-  <n-tabs class="tabs" type="card" :on-update:value="onTabUpdate" :value="curTabUrl" :on-close="onCloseTab" closable
-    animated>
+  <n-tabs class="mr-1 ml-1" type="card" :on-update:value="onTabUpdate" :value="curTabUrl" :on-close="onCloseTab"
+    closable animated>
     <n-tab v-for="item in tabStore.tabs" :key="item.url" :name="item.url" :closable="item.closable">
       <icon :icon="item.icon" height="20" style="margin-right: 6px;"></icon>
       {{ item.label }}
     </n-tab>
     <template #suffix>
+
+      <n-button class="!mr-2" text @click="onClick" size="large">
+        <template #icon>
+          <Icon icon="i:github" />
+        </template>
+      </n-button>
+
       <n-switch :round="false" v-model:value="globaleStateStore.isDark">
         <template #checked>
           暗
@@ -14,6 +21,7 @@
           亮
         </template>
       </n-switch>
+
     </template>
   </n-tabs>
 </template>
@@ -24,11 +32,12 @@ import { watch, ref } from 'vue'
 import { useTabStore } from '../../stores/tabs.ts'
 import { useRoute, useRouter } from 'vue-router'
 
-import { NTabs, NTab, NSwitch } from 'naive-ui'
+import { NTabs, NTab, NSwitch, NButton } from 'naive-ui'
 import { useGlobalStateStore } from '@/stores/globaleState.ts'
 
 import { Icon } from '@iconify/vue'
 
+import { sys_start } from '@/api/sys.ts'
 const curTabUrl = ref<string>('/home')
 const route = useRoute()
 const router = useRouter()
@@ -81,13 +90,8 @@ function onCloseTab(url: string) {
   router.push('/home')
   curTabUrl.value = '/home'
 }
-</script>
 
-<style scoped>
-.header-layout {
-  align-items: center;
-  height: 100%;
+function onClick() {
+  sys_start('https://github.com/helittr/handy/releases')
 }
-</style>
-
-<style></style>
+</script>
