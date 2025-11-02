@@ -3,10 +3,7 @@
 use std::{
     path::PathBuf,
     process::{Child, Command},
-    sync::{Arc, Mutex},
 };
-
-use tauri::WindowEvent;
 
 fn start_server() -> Child {
     let mut is_embed: bool = false;
@@ -39,23 +36,15 @@ fn start_server() -> Child {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let handle = Arc::new(Mutex::new(start_server()));
-    let handle_cloned = handle.clone();
+    let mut handle = start_server();
 
     tauri::Builder::default()
-        .on_window_event(move |_win, event| match event {
-            WindowEvent::CloseRequested { .. } => {
-                println!("kill server thread.");
-                if let Ok(mut child) = handle_cloned.lock() {
-                    child.kill().expect("command couldn't be killed");
-                } else {
-                    println!("failed to lock handle for killing");
-                }
-                println!("application exit");
-            }
-            _ => {}
-        })
         .plugin(tauri_plugin_opener::init())
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run_return(|_app_handle, _run_event| {});
+
+    println!("kill server thread.");
+    handle.kill().expect("command couldn't be killed");
+    println!("application exit");
 }

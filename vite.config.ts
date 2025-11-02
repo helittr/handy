@@ -32,17 +32,6 @@ export default defineConfig({
     },
   },
   clearScreen: false,
-  // server: {
-  //   // port: 8000,
-  //   open: true,
-  //   cors: true,
-  //   proxy: {
-  //     '/openapi.json': {
-  //       target: 'http://localhost:8000',
-  //       changeOrigin: true,
-  //     },
-  //   },
-  // },
   server: {
     port: 1420,
     cors: true,

@@ -1,5 +1,6 @@
 
 $PYTHON_VERSION = "3.12.9"
+$HANDY_ZIP = "handy-0_6_0.zip"
 
 
 $outDir = "$PSScriptRoot\out"
@@ -31,5 +32,11 @@ if ( -not $(Test-Path -Path "$outDir/$python" -PathType Leaf) ) {
 
 uv pip install --python-version $PYTHON_VERSION --python-platform windows --prefix "$outDir/handy/python" $handyServe -i "https://mirrors.aliyun.com/pypi/simple/"
 
+
 Copy-Item -Path $handyExe -Destination $outDir/handy
 
+if ( $(Test-Path -Path "$outDir/$HANDY_ZIP" -PathType Leaf) ) {
+    Remove-Item -Path $outDir/$HANDY_ZIP
+}
+
+Compress-Archive -Path $outDir/handy -DestinationPath "$outDir/$HANDY_ZIP"

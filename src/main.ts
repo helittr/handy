@@ -1,5 +1,4 @@
 import '@csstools/normalize.css'
-import '@xterm/xterm/css/xterm.css'
 
 import './utils/icon.ts'
 
