@@ -6,7 +6,8 @@ import vue from '@vitejs/plugin-vue'
 // import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
-
+import terser from '@rollup/plugin-terser'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -50,11 +51,29 @@ export default defineConfig({
     },
   },
   build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
         nested: resolve(__dirname, 'docs/index.html'),
       },
-    },
-  },
+      output: {
+        manualChunks: {
+          vue: ["vue"],
+          math: ["mathjs"],
+          axios: ["axios"],
+        }
+      },
+      plugins: [
+        visualizer({ filename: 'out/stats.html' }),
+        terser()
+      ]
+    }
+  }
 })

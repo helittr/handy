@@ -1,6 +1,6 @@
 """ADB脚本参数类型定义模块"""
 
-from typing import Literal as L, List, Any
+from typing import Literal as L, List, Annotated
 from pydantic import BaseModel, Field
 
 
@@ -37,7 +37,7 @@ class SelectParameter(BaseModel):
     label: str
     description: str
     required: bool = True
-    options: List[SelectOption] = Field(default_factory=list)
+    options : Annotated[List[SelectOption], Field()] = Field(default_factory=list)
 
     def check_value(self, option: str | List[str]) -> bool:
 

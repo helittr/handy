@@ -27,13 +27,13 @@ if ( -not $(Test-Path -Path "$outDir/$python" -PathType Leaf) ) {
 
     # $outPython = Get-ChildItem "$outDir/$python"
     Write-Host "unzip $outDir/$python"
-    Expand-Archive -Path "$outDir/$python" -DestinationPath "$outDir/handy/python"
+    Expand-Archive -Path "$outDir/$python" -DestinationPath "$outDir/handy/python" -Force
     # Write-Host "delete $outDir/$python"
-    Write-Output "Lib/site-packages" | Out-File -FilePath "$outDir/handy/python/python312._pth" -Append -Encoding utf8
+    # Write-Output "Lib/site-packages" | Out-File -FilePath "$outDir/handy/python/python312._pth" -Append -Encoding utf8
 }
 
 
-uv pip install --python-version $PYTHON_VERSION --python-platform windows --prefix "$outDir/handy/python" $handyServe -i "https://mirrors.aliyun.com/pypi/simple/" --reinstall-package handyapi --python "$outDir/handy/python/python.exe"
+uv pip install --python-version $PYTHON_VERSION --python-platform windows --target "$outDir/handy/python" $handyServe -i "https://mirrors.aliyun.com/pypi/simple/" --reinstall-package handyapi --python "$outDir/handy/python/python.exe" --link-mode=copy
 
 
 Copy-Item -Path $handyExe -Destination $outDir/handy

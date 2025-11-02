@@ -43,7 +43,7 @@ type IdType = int
 class ScriptInfo(BaseModel):
     """脚本信息模型"""
 
-    id: IdType = Field(default_factory=GlobalId.get_next_id)
+    id: Annotated[IdType, Field()] = Field(default_factory=GlobalId.get_next_id)
     name: str
     type: t.Literal["winpowershell", "powershell", "python"]
     path: Annotated[str, AfterValidator(validate_path)]
@@ -53,7 +53,7 @@ class ScriptInfo(BaseModel):
     parameters: t.List[
         t.Annotated[
             InputParameter | SelectParameter | SwitchParameter,
-            Field(default_factory=list, discriminator="type"),
+            Field(discriminator="type"),
         ]
     ]
 
@@ -68,18 +68,18 @@ class GroupInfo(BaseModel):
     description: str
     children: t.List[
         Annotated[
-            "GroupInfo|ScriptInfo", Field(default_factory=list, discriminator="type")
+            "GroupInfo|ScriptInfo", Field(discriminator="type")
         ]
-    ]
+    ] = Field(default_factory=list)
 
 class RootGroup(RootModel):
     """根组模型"""
 
     root: t.List[
         Annotated[
-            "GroupInfo|ScriptInfo", Field(default_factory=list, discriminator="type")
+            "GroupInfo|ScriptInfo", Field(discriminator="type")
         ]
-    ]
+    ] = Field(default_factory=list)
 
     def iter(self) -> t.Iterator[t.Tuple[IdType, t.Union[GroupInfo, ScriptInfo]]]:
         for item in self.root:

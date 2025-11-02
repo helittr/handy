@@ -1,6 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use std::{
+    os::windows::process::CommandExt,
     path::PathBuf,
     process::{Child, Command},
 };
@@ -29,7 +30,9 @@ fn start_server() -> Child {
         );
     };
 
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
     let handle = cmd
+        .creation_flags(CREATE_NO_WINDOW)
         .args(["-m", "handyapi"])
         .spawn()
         .expect("failed to execute process");
